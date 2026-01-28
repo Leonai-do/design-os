@@ -1,0 +1,3170 @@
+This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+source/
+  components/
+    dynamic/
+      active-step/
+        RegenerationBanner.tsx
+        StepFooter.tsx
+        StepMessageBubble.tsx
+      fields/
+        FieldInput.tsx
+        FieldSelect.tsx
+        FieldTextarea.tsx
+      history/
+        HistoryItemEdit.tsx
+        HistoryItemLock.tsx
+        HistoryItemView.tsx
+      ActiveStep.tsx
+      ContextSidebar.tsx
+      HistoryList.tsx
+    refinement/
+      chat/
+        ChatBubble.tsx
+        ChatInput.tsx
+      ChatInterface.tsx
+      ChatMarkdown.tsx
+      DocPreview.tsx
+      FilePreviewModal.tsx
+      RefinementToolbar.tsx
+      TOCSidebar.tsx
+    DynamicIntake.tsx
+    RefinementView.tsx
+  hooks/
+    dynamic/
+      useDynamicGeneration.ts
+      useDynamicValidation.ts
+    refinement/
+      useChatSession.ts
+      useTOC.ts
+    useDynamicIntakeLogic.ts
+  services/
+    workflows/
+      discovery.ts
+    geminiService.ts
+  store/
+    useAppStore.ts
+  types.ts
+specs/
+  dynamic-intake-engine/
+    spec.md
+  refinement-studio/
+    spec.md
+.openspec.yaml
+design.md
+proposal.md
+tasks.md
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="source/components/dynamic/active-step/RegenerationBanner.tsx">
+import React from 'react';
+
+interface RegenerationBannerProps {
+  onCancel: () => void;
+  onConfirm: () => void;
+}
+
+const RegenerationBanner: React.FC<RegenerationBannerProps> = ({ onCancel, onConfirm }) => {
+  return (
+    <div className="ml-14 mb-4 p-4 bg-amber-50 dark:bg-amber-900/10 border-l-4 border-amber-500 rounded-r-lg shadow-sm animate-fade-in">
+        <div className="flex justify-between items-center">
+            <div>
+                <h4 className="text-sm font-bold text-amber-800 dark:text-amber-400 uppercase tracking-wide">
+                    <i className="fa-solid fa-lock mr-2"></i> Regeneration Mode
+                </h4>
+                <p className="text-xs text-amber-700 dark:text-amber-500 mt-1">
+                    Lock the fields you want to keep. The AI will regenerate the rest based on your project context.
+                </p>
+            </div>
+            <div className="flex gap-2">
+                <button 
+                    onClick={onCancel}
+                    className="px-3 py-1.5 text-xs font-bold text-slate-500 hover:text-slate-700 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded hover:bg-slate-50 transition-colors"
+                >
+                    Cancel
+                </button>
+                <button 
+                    onClick={onConfirm}
+                    className="px-3 py-1.5 text-xs font-bold text-white bg-amber-500 hover:bg-amber-600 rounded shadow-sm transition-colors flex items-center gap-1"
+                >
+                    <i className="fa-solid fa-rotate-right"></i> Regenerate
+                </button>
+            </div>
+        </div>
+    </div>
+  );
+};
+
+export default RegenerationBanner;
+</file>
+
+<file path="source/components/dynamic/active-step/StepFooter.tsx">
+import React from 'react';
+import DynamicField from '../../DynamicField';
+import { DynamicField as DynamicFieldType } from '../../../types';
+
+interface StepFooterProps {
+  notesField: DynamicFieldType;
+  notesValue: any;
+  onFieldChange: (id: string, value: any) => void;
+  apiError: string | null;
+  onRegenerateTrigger?: () => void;
+  canRegenerate: boolean;
+  isComplete: boolean;
+  onSkipToPrd: () => void;
+  onNext: () => void;
+}
+
+const StepFooter: React.FC<StepFooterProps> = ({
+  notesField,
+  notesValue,
+  onFieldChange,
+  apiError,
+  onRegenerateTrigger,
+  canRegenerate,
+  isComplete,
+  onSkipToPrd,
+  onNext
+}) => {
+  return (
+    <>
+        <div className="pt-6 border-t border-slate-100 dark:border-slate-800">
+            <DynamicField 
+                field={notesField}
+                value={notesValue}
+                onChange={onFieldChange}
+            />
+        </div>
+
+        {apiError && (
+        <div className="mt-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-600 dark:text-red-300 text-sm flex items-center gap-2 animate-fade-in">
+            <i className="fa-solid fa-circle-exclamation"></i>
+            {apiError}
+        </div>
+        )}
+
+        <div className="pt-6 flex justify-between items-center mt-4">
+            {/* Left Side: Regenerate with Lock Mode Trigger */}
+            {canRegenerate && onRegenerateTrigger ? (
+                <button
+                    onClick={onRegenerateTrigger}
+                    className="px-0 py-2 text-slate-400 hover:text-amber-600 dark:text-slate-500 dark:hover:text-amber-400 font-medium text-xs flex items-center gap-1.5 transition-colors group"
+                    title="Regenerate this step's questions based on updated context"
+                >
+                    <i className="fa-solid fa-rotate-right group-hover:rotate-180 transition-transform duration-500"></i> 
+                    Regenerate Step
+                </button>
+            ) : <div></div>}
+
+            {/* Right Side: Navigation & Skip */}
+            <div className="flex items-center gap-4">
+                {!isComplete && (
+                    <button
+                        onClick={onSkipToPrd}
+                        className="text-slate-400 dark:text-slate-500 hover:text-brand-600 dark:hover:text-brand-400 font-medium text-xs transition-colors"
+                    >
+                        Skip to PRD
+                    </button>
+                )}
+                
+                {isComplete ? (
+                    <button
+                        onClick={onSkipToPrd}
+                        className="px-6 py-3 bg-gradient-to-r from-brand-500 to-brand-700 hover:from-brand-600 hover:to-brand-800 text-white rounded-xl font-bold shadow-lg shadow-brand-500/30 transform hover:scale-105 transition-all flex items-center gap-2"
+                    >
+                        <i className="fa-solid fa-wand-magic-sparkles"></i> Generate Final PRD
+                    </button>
+                ) : (
+                    <button
+                        onClick={onNext}
+                        className={`px-6 py-3 rounded-xl font-bold text-white transition-all flex items-center gap-2 bg-slate-900 dark:bg-brand-600 hover:bg-slate-800 dark:hover:bg-brand-500 shadow-md`}
+                    >
+                        Next Step <i className="fa-solid fa-arrow-right"></i>
+                    </button>
+                )}
+            </div>
+        </div>
+    </>
+  );
+};
+
+export default StepFooter;
+</file>
+
+<file path="source/components/dynamic/active-step/StepMessageBubble.tsx">
+import React from 'react';
+
+interface StepMessageBubbleProps {
+  isAiLoading: boolean;
+  message: string;
+  loadingStatus?: string;
+}
+
+const StepMessageBubble: React.FC<StepMessageBubbleProps> = ({ isAiLoading, message, loadingStatus }) => {
+  return (
+    <div className="flex gap-4 mb-6">
+        <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 text-white shadow-lg transition-all duration-500
+            ${isAiLoading ? 'bg-slate-300 dark:bg-slate-700 animate-pulse' : 'bg-brand-600'}`}>
+            <i className={`fa-solid ${isAiLoading ? 'fa-circle-notch animate-spin' : 'fa-robot'}`}></i>
+        </div>
+        <div className="bg-white dark:bg-slate-800 p-5 rounded-2xl rounded-tl-none border-2 border-brand-100 dark:border-brand-900 shadow-md text-slate-800 dark:text-slate-100 text-lg w-full">
+            {isAiLoading && !message ? (
+                <div className="flex flex-col gap-3">
+                    <div className="flex items-center gap-2.5 text-slate-500 dark:text-slate-300">
+                        <span className="relative flex h-3 w-3">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-400 opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-3 w-3 bg-brand-500"></span>
+                        </span>
+                        <span className="font-medium animate-pulse">{loadingStatus || "Thinking..."}</span>
+                    </div>
+                </div>
+            ) : (
+                <div className="animate-fade-in">
+                   {message}
+                </div>
+            )}
+        </div>
+    </div>
+  );
+};
+
+export default StepMessageBubble;
+</file>
+
+<file path="source/components/dynamic/fields/FieldInput.tsx">
+import React from 'react';
+
+interface FieldInputProps {
+  value: any;
+  onChange: (val: any) => void;
+  placeholder?: string;
+  className: string;
+}
+
+const FieldInput: React.FC<FieldInputProps> = ({ value, onChange, placeholder, className }) => {
+  return (
+    <input
+      type="text"
+      value={value || ''}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder={placeholder}
+      className={className}
+    />
+  );
+};
+
+export default FieldInput;
+</file>
+
+<file path="source/components/dynamic/fields/FieldSelect.tsx">
+import React from 'react';
+import { DynamicField as DynamicFieldType } from '../../../types';
+
+interface FieldSelectProps {
+  field: DynamicFieldType;
+  value: any;
+  notesValue: Record<string, string>;
+  onChange: (id: string, value: any) => void;
+  onNotesChange: (notes: Record<string, string>) => void;
+  baseClassName: string;
+}
+
+const FieldSelect: React.FC<FieldSelectProps> = ({ 
+  field, value, notesValue, onChange, onNotesChange, baseClassName 
+}) => {
+
+  const handleNoteChange = (option: string, text: string) => {
+    onNotesChange({ ...notesValue, [option]: text });
+  };
+
+  // --- MULTI-SELECT RENDERER ---
+  if (field.type === 'multiselect') {
+    const renderCheckboxItem = (option: string, isGrouped = false) => {
+        const selectedList = Array.isArray(value) ? value : [];
+        const isSelected = selectedList.includes(option);
+    
+        const toggleHandler = () => {
+            if (isSelected) {
+                onChange(field.id, selectedList.filter((s: string) => s !== option));
+            } else {
+                onChange(field.id, [...selectedList, option]);
+            }
+        };
+    
+        return (
+            <div key={option} className={`mb-3 ${isGrouped ? 'ml-4' : ''}`}>
+                <label className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-all duration-200 group
+                    ${isSelected 
+                        ? 'bg-brand-50 dark:bg-brand-900/20 border-brand-200 dark:border-brand-800' 
+                        : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-brand-300 dark:hover:border-slate-500'
+                    }`}
+                >
+                    <div className="mt-0.5">
+                        <input 
+                            type="checkbox" 
+                            checked={isSelected} 
+                            onChange={toggleHandler}
+                            className="w-4 h-4 rounded text-brand-600 focus:ring-brand-500 border-gray-300 dark:border-slate-600 bg-gray-100 dark:bg-slate-700 cursor-pointer"
+                        />
+                    </div>
+                    <div className="flex-1">
+                        <span className={`text-sm font-medium ${isSelected ? 'text-brand-900 dark:text-brand-100' : 'text-slate-700 dark:text-slate-300'}`}>
+                            {option}
+                        </span>
+                    </div>
+                </label>
+    
+                {isSelected && (
+                    <div className="mt-2 ml-7 animate-fade-in">
+                        <input 
+                            type="text"
+                            value={notesValue[option] || ''}
+                            onChange={(e) => handleNoteChange(option, e.target.value)}
+                            placeholder={option === 'Other' ? "Please specify..." : `Specific notes for "${option}"...`}
+                            className="w-full text-sm px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded text-slate-700 dark:text-slate-300 focus:border-brand-300 focus:ring-2 focus:ring-brand-500/20 outline-none transition-all placeholder:text-slate-400"
+                        />
+                    </div>
+                )}
+            </div>
+        );
+    };
+
+    return (
+        <div className="space-y-1 animate-slide-up">
+            {field.options?.map((opt, idx) => {
+                if (typeof opt === 'string') {
+                    return renderCheckboxItem(opt);
+                } else {
+                    return (
+                        <div key={idx} className="mb-4">
+                            <div className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2 ml-1">
+                                {opt.label}
+                            </div>
+                            {opt.options.map(subOpt => renderCheckboxItem(subOpt, true))}
+                        </div>
+                    );
+                }
+            })}
+        </div>
+    );
+  }
+
+  // --- SINGLE SELECT RENDERER ---
+  return (
+    <div className="animate-slide-up space-y-3">
+        <div className="relative">
+            <select
+                value={value || ''}
+                onChange={(e) => onChange(field.id, e.target.value)}
+                className={`${baseClassName} appearance-none cursor-pointer`}
+            >
+            <option value="" disabled>Select an option...</option>
+            {field.options?.map((opt, idx) => {
+                if (typeof opt === 'string') {
+                    return <option key={opt} value={opt}>{opt}</option>;
+                } else {
+                    return (
+                        <optgroup key={idx} label={opt.label}>
+                        {opt.options.map(subOpt => (
+                            <option key={subOpt} value={subOpt}>{subOpt}</option>
+                        ))}
+                        </optgroup>
+                    );
+                }
+            })}
+            </select>
+            <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500">
+                <i className="fa-solid fa-chevron-down text-xs"></i>
+            </div>
+        </div>
+
+        {value === 'Other' && (
+            <div className="animate-fade-in pl-1">
+                <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wide">
+                    Please specify
+                </label>
+                <input
+                    type="text"
+                    value={notesValue['Other'] || ''}
+                    onChange={(e) => handleNoteChange('Other', e.target.value)}
+                    placeholder="Enter details..."
+                    className={baseClassName}
+                />
+            </div>
+        )}
+    </div>
+  );
+};
+
+export default FieldSelect;
+</file>
+
+<file path="source/components/dynamic/fields/FieldTextarea.tsx">
+import React from 'react';
+import AutoTextarea from '../../AutoTextarea';
+
+interface FieldTextareaProps {
+  value: any;
+  onChange: (val: any) => void;
+  placeholder?: string;
+  className: string;
+}
+
+const FieldTextarea: React.FC<FieldTextareaProps> = ({ value, onChange, placeholder, className }) => {
+  return (
+    <AutoTextarea
+      value={value || ''}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder={placeholder}
+      className={className}
+    />
+  );
+};
+
+export default FieldTextarea;
+</file>
+
+<file path="source/components/dynamic/history/HistoryItemEdit.tsx">
+import React from 'react';
+import { DiscoveryStep, PrdContext, DynamicField as DynamicFieldType } from '../../../types';
+import DynamicField from '../../DynamicField';
+
+interface HistoryItemEditProps {
+  step: DiscoveryStep;
+  context: PrdContext;
+  onSave: () => void;
+  handleFieldChange: (id: string, value: any) => void;
+  getNotesField: (id: number) => DynamicFieldType;
+}
+
+const HistoryItemEdit: React.FC<HistoryItemEditProps> = ({ step, context, onSave, handleFieldChange, getNotesField }) => {
+  return (
+    <div className="w-full ml-14 bg-white dark:bg-slate-900 p-6 rounded-2xl border-2 border-brand-500 shadow-xl animate-fade-in relative z-10">
+        <div className="space-y-6">
+            {step.fields.map(field => (
+                <DynamicField 
+                    key={field.id}
+                    field={field}
+                    value={context[field.id]}
+                    onChange={handleFieldChange}
+                />
+            ))}
+            <div className="pt-4 border-t border-slate-100 dark:border-slate-800">
+                <DynamicField 
+                  field={getNotesField(step.stepId)}
+                  value={context[`custom_notes_${step.stepId}`]}
+                  onChange={handleFieldChange}
+                />
+            </div>
+        </div>
+        <div className="mt-6 flex justify-end gap-3">
+            <button 
+                onClick={onSave}
+                className="px-4 py-2 bg-brand-600 text-white rounded-lg font-bold text-sm shadow hover:bg-brand-700 transition-colors"
+            >
+                Save Changes
+            </button>
+        </div>
+    </div>
+  );
+};
+
+export default HistoryItemEdit;
+</file>
+
+<file path="source/components/dynamic/history/HistoryItemLock.tsx">
+import React, { useState } from 'react';
+import { DiscoveryStep, PrdContext } from '../../../types';
+
+interface HistoryItemLockProps {
+  step: DiscoveryStep;
+  context: PrdContext;
+  onCancel: () => void;
+  onConfirm: (lockedIds: string[]) => void;
+}
+
+const HistoryItemLock: React.FC<HistoryItemLockProps> = ({ step, context, onCancel, onConfirm }) => {
+  const [lockedFieldIds, setLockedFieldIds] = useState<Set<string>>(new Set());
+
+  const toggleLock = (fieldId: string) => {
+      const newSet = new Set(lockedFieldIds);
+      if (newSet.has(fieldId)) newSet.delete(fieldId);
+      else newSet.add(fieldId);
+      setLockedFieldIds(newSet);
+  };
+
+  return (
+    <div className="w-full ml-14 bg-amber-50 dark:bg-amber-900/10 p-6 rounded-2xl border-2 border-amber-400 dark:border-amber-600 shadow-xl animate-fade-in relative z-10">
+        <div className="mb-4">
+            <h4 className="font-bold text-amber-800 dark:text-amber-400 flex items-center gap-2">
+                <i className="fa-solid fa-lock"></i> Select Fields to Keep (Lock)
+            </h4>
+            <p className="text-xs text-amber-700 dark:text-amber-500 mt-1">
+                Unchecked fields will be regenerated by the AI based on the latest context. Locked fields will be preserved.
+            </p>
+        </div>
+        
+        <div className="space-y-3 bg-white dark:bg-slate-800 p-4 rounded-xl border border-amber-200 dark:border-amber-800/50">
+            {step.fields.map(field => {
+                const isLocked = lockedFieldIds.has(field.id);
+                return (
+                    <div 
+                        key={field.id} 
+                        onClick={() => toggleLock(field.id)}
+                        className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-all
+                            ${isLocked 
+                                ? 'bg-amber-100 dark:bg-amber-900/30 border-amber-400 dark:border-amber-500' 
+                                : 'border-slate-200 dark:border-slate-700 hover:border-amber-300 dark:hover:border-amber-700'}`}
+                    >
+                        <div className="flex items-center gap-3">
+                            <div className={`w-5 h-5 rounded flex items-center justify-center border transition-colors
+                                ${isLocked ? 'bg-amber-500 border-amber-500 text-white' : 'border-slate-300 dark:border-slate-600'}`}>
+                                {isLocked && <i className="fa-solid fa-lock text-xs"></i>}
+                            </div>
+                            <div>
+                                <span className={`text-sm font-bold block ${isLocked ? 'text-amber-900 dark:text-amber-100' : 'text-slate-700 dark:text-slate-300'}`}>{field.label}</span>
+                                <span className="text-xs text-slate-500 dark:text-slate-400 truncate max-w-[200px] block">
+                                    {Array.isArray(context[field.id]) ? context[field.id].join(', ') : context[field.id]}
+                                </span>
+                            </div>
+                        </div>
+                        {isLocked ? (
+                            <span className="text-xs font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wide">Locked</span>
+                        ) : (
+                            <span className="text-xs text-slate-400">Regenerate</span>
+                        )}
+                    </div>
+                );
+            })}
+        </div>
+
+        <div className="mt-6 flex justify-end gap-3">
+            <button onClick={onCancel} className="px-4 py-2 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 text-sm font-medium">
+                Cancel
+            </button>
+            <button onClick={() => onConfirm(Array.from(lockedFieldIds))} className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg font-bold text-sm shadow transition-colors flex items-center gap-2">
+                <i className="fa-solid fa-rotate-right"></i> Regenerate Step
+            </button>
+        </div>
+    </div>
+  );
+};
+
+export default HistoryItemLock;
+</file>
+
+<file path="source/components/dynamic/history/HistoryItemView.tsx">
+import React from 'react';
+import { DiscoveryStep, PrdContext } from '../../../types';
+
+interface HistoryItemViewProps {
+  step: DiscoveryStep;
+  context: PrdContext;
+  isEdited: boolean;
+  editedTime: string;
+  onEdit: () => void;
+  onRegenerateRequest?: () => void;
+}
+
+const HistoryItemView: React.FC<HistoryItemViewProps> = ({ step, context, isEdited, editedTime, onEdit, onRegenerateRequest }) => {
+  return (
+    <div className="flex gap-4 w-full justify-end">
+        {/* Control Buttons */}
+        <div className="flex flex-col items-end gap-2 mt-2">
+            <div className="flex flex-col items-end">
+                <button 
+                    onClick={onEdit}
+                    className={`h-9 w-9 flex items-center justify-center rounded-full transition-all shadow-sm border
+                        ${isEdited 
+                            ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-800 hover:bg-amber-200 dark:hover:bg-amber-800/50' 
+                            : 'bg-slate-100 dark:bg-slate-800 text-slate-400 border-slate-200 dark:border-slate-700 hover:text-brand-500 hover:bg-brand-50 dark:hover:bg-slate-700'
+                        }`}
+                    title="Edit Values"
+                >
+                    <i className="fa-solid fa-pencil"></i>
+                </button>
+                {isEdited && (
+                    <div className="flex flex-col items-end mt-1 mr-1">
+                        <span className="text-[10px] text-amber-600 dark:text-amber-400 font-bold uppercase tracking-wider">Edited</span>
+                        <span className="text-[9px] text-amber-500/70 dark:text-amber-400/60 font-mono">{editedTime}</span>
+                    </div>
+                )}
+            </div>
+            
+            {onRegenerateRequest && (
+                <button 
+                    onClick={onRegenerateRequest}
+                    className="h-9 w-9 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 hover:text-amber-500 hover:bg-amber-50 dark:hover:bg-slate-700 transition-all shadow-sm border border-slate-200 dark:border-slate-700"
+                    title="Regenerate this Step (with Context)"
+                >
+                    <i className="fa-solid fa-rotate-right"></i>
+                </button>
+            )}
+        </div>
+
+        <div className="bg-slate-100 dark:bg-slate-800/50 p-5 rounded-2xl rounded-tr-none border border-slate-200 dark:border-slate-700 w-full max-w-[85%] hover:border-brand-200 dark:hover:border-brand-800 transition-colors">
+            <ul className="text-sm text-slate-600 dark:text-slate-400 space-y-3">
+                {step.fields.map(f => (
+                    <li key={f.id} className="flex flex-col gap-1">
+                        <span className="font-bold text-slate-800 dark:text-slate-200 text-xs uppercase tracking-wide opacity-70">{f.label}</span>
+                        <span className="text-slate-900 dark:text-white font-medium break-words leading-relaxed">
+                            {Array.isArray(context[f.id]) ? context[f.id].join(', ') : context[f.id]}
+                        </span>
+                    </li>
+                ))}
+                {context[`custom_notes_${step.stepId}`] && (
+                    <li className="pt-2 border-t border-slate-200 dark:border-slate-700 mt-2">
+                        <span className="font-bold text-brand-600 dark:text-brand-400 text-xs uppercase tracking-wide block mb-1">Additional Notes</span>
+                        <span className="text-slate-600 dark:text-slate-300 italic">
+                            "{context[`custom_notes_${step.stepId}`]}"
+                        </span>
+                    </li>
+                )}
+            </ul>
+        </div>
+        <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center shrink-0 text-slate-500 shadow-sm">
+            <i className="fa-solid fa-user"></i>
+        </div>
+    </div>
+  );
+};
+
+export default HistoryItemView;
+</file>
+
+<file path="source/components/dynamic/ActiveStep.tsx">
+import React, { useState } from 'react';
+import { DiscoveryStep, PrdContext, DynamicField as DynamicFieldType } from '../../types';
+import DynamicField from '../DynamicField';
+import StepMessageBubble from './active-step/StepMessageBubble';
+import RegenerationBanner from './active-step/RegenerationBanner';
+import StepFooter from './active-step/StepFooter';
+
+interface ActiveStepProps {
+  isAiLoading: boolean;
+  partialStep?: Partial<DiscoveryStep>;
+  loadingStatus?: string;
+  currentStep: DiscoveryStep;
+  context: PrdContext;
+  handleFieldChange: (id: string, value: any) => void;
+  getNotesField: (stepId: number) => DynamicFieldType;
+  showErrors: boolean;
+  isFieldValid: (id: string) => boolean;
+  apiError: string | null;
+  onComplete: (context: PrdContext, files: File[]) => void;
+  files: File[];
+  handleNextClick: () => void;
+  onStop?: () => void;
+  onRegenerate?: (lockedFields: string[]) => void;
+}
+
+const ActiveStep: React.FC<ActiveStepProps> = ({
+  isAiLoading, partialStep, loadingStatus, currentStep, context,
+  handleFieldChange, getNotesField, showErrors, isFieldValid, apiError,
+  onComplete, files, handleNextClick, onStop, onRegenerate
+}) => {
+  const [isSelectionMode, setIsSelectionMode] = useState(false);
+  const [lockedFieldIds, setLockedFieldIds] = useState<Set<string>>(new Set());
+
+  const activeFields = isAiLoading ? (partialStep?.fields || []) : currentStep.fields;
+  const activeMessage = isAiLoading ? (partialStep?.aiMessage || '') : currentStep.aiMessage;
+
+  const toggleLock = (fieldId: string) => {
+    const newSet = new Set(lockedFieldIds);
+    if (newSet.has(fieldId)) newSet.delete(fieldId);
+    else newSet.add(fieldId);
+    setLockedFieldIds(newSet);
+  };
+
+  const handleConfirmRegenerate = () => {
+      if (onRegenerate) {
+          onRegenerate(Array.from(lockedFieldIds));
+          setIsSelectionMode(false);
+          setLockedFieldIds(new Set());
+      }
+  };
+
+  return (
+    <div className="animate-fade-in pb-8">
+        <StepMessageBubble isAiLoading={isAiLoading} message={activeMessage} loadingStatus={loadingStatus} />
+
+        {isSelectionMode && !isAiLoading && (
+            <RegenerationBanner onCancel={() => setIsSelectionMode(false)} onConfirm={handleConfirmRegenerate} />
+        )}
+
+        {(!isAiLoading || activeFields.length > 0) && (
+            <div className={`ml-14 bg-white dark:bg-slate-900 p-6 md:p-8 rounded-2xl shadow-xl border space-y-6 relative animate-fade-in transition-all duration-300
+                ${isSelectionMode 
+                    ? 'border-amber-400 dark:border-amber-600 ring-4 ring-amber-50 dark:ring-amber-900/20' 
+                    : 'border-slate-200 dark:border-slate-700'}`}>
+                
+                {activeFields.map(field => {
+                    if (field.dependsOn && context[field.dependsOn.fieldId] !== field.dependsOn.value) return null;
+                    const isLocked = lockedFieldIds.has(field.id);
+
+                    return (
+                        <div key={field.id} className="animate-slide-up relative group">
+                            {isSelectionMode && (
+                                <div 
+                                    onClick={() => toggleLock(field.id)}
+                                    className={`absolute -left-4 -right-4 -top-2 -bottom-2 z-10 cursor-pointer rounded-lg border-2 transition-all duration-200 flex items-center justify-end pr-4
+                                        ${isLocked ? 'bg-amber-100/10 border-amber-500' : 'border-transparent hover:bg-slate-50/50 hover:border-slate-300 dark:hover:border-slate-600'}`}
+                                >
+                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center shadow-sm transition-all
+                                        ${isLocked ? 'bg-amber-500 text-white scale-110' : 'bg-white dark:bg-slate-800 text-slate-300 border border-slate-200 dark:border-slate-600'}`}>
+                                        <i className={`fa-solid ${isLocked ? 'fa-lock' : 'fa-unlock'}`}></i>
+                                    </div>
+                                </div>
+                            )}
+                            <div className={`${isSelectionMode && !isLocked ? 'opacity-50 blur-[1px]' : 'opacity-100'} transition-all duration-300`}>
+                                <DynamicField 
+                                    field={field}
+                                    value={context[field.id]}
+                                    notesValue={context[`${field.id}_notes`] || {}}
+                                    onChange={handleFieldChange}
+                                    onNotesChange={(notes) => handleFieldChange(`${field.id}_notes`, notes)}
+                                    error={showErrors && !isFieldValid(field.id)}
+                                />
+                            </div>
+                        </div>
+                    );
+                })}
+
+                {isAiLoading && (
+                    <div className="py-4 flex items-center gap-3 text-slate-400 dark:text-slate-600 animate-pulse">
+                        <div className="w-4 h-4 rounded-full bg-slate-200 dark:bg-slate-700"></div>
+                        <div className="h-2 w-32 bg-slate-200 dark:bg-slate-700 rounded-full"></div>
+                        <span className="text-xs font-mono ml-auto opacity-70">{loadingStatus}</span>
+                    </div>
+                )}
+
+                {!isAiLoading && !isSelectionMode && (
+                    <StepFooter 
+                        notesField={getNotesField(currentStep.stepId)}
+                        notesValue={context[`custom_notes_${currentStep.stepId}`]}
+                        onFieldChange={handleFieldChange}
+                        apiError={apiError}
+                        onRegenerateTrigger={onRegenerate ? () => setIsSelectionMode(true) : undefined}
+                        canRegenerate={currentStep.stepId > 1}
+                        isComplete={currentStep.isComplete}
+                        onSkipToPrd={() => onComplete(context, files)}
+                        onNext={handleNextClick}
+                    />
+                )}
+
+                {isAiLoading && onStop && (
+                    <div className="flex justify-end pt-4 border-t border-slate-100 dark:border-slate-800">
+                        <button onClick={onStop} className="px-4 py-2 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-300 text-xs font-bold rounded-lg hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors flex items-center gap-2">
+                            <i className="fa-solid fa-stop"></i> Stop Generation
+                        </button>
+                    </div>
+                )}
+            </div>
+        )}
+    </div>
+  );
+};
+
+export default ActiveStep;
+</file>
+
+<file path="source/components/dynamic/ContextSidebar.tsx">
+import React from 'react';
+import { PrdContext, ModelConfig } from '../../types';
+
+interface ContextSidebarProps {
+  context: PrdContext;
+  files: File[];
+  modelConfig: ModelConfig;
+  getLabelForKey: (key: string) => string;
+}
+
+const ContextSidebar: React.FC<ContextSidebarProps> = ({ context, files, modelConfig, getLabelForKey }) => {
+  return (
+    <div className="hidden lg:block col-span-1 h-full">
+        <div className="sticky top-24 bg-white dark:bg-slate-900 rounded-2xl shadow-lg border-2 border-brand-500/20 dark:border-brand-500/10 p-6 max-h-[calc(100vh-7rem)] flex flex-col">
+            <div className="mb-6 pb-4 border-b border-slate-100 dark:border-slate-800 shrink-0">
+                <h3 className="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                    <i className="fa-solid fa-list-check text-brand-500"></i>
+                    Live Context Draft
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                    Summary of defined inputs and decisions.
+                </p>
+            </div>
+
+            {files.length > 0 && (
+              <div className="mb-6 pb-4 border-b border-slate-100 dark:border-slate-800 shrink-0">
+                 <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider block mb-2">Attached Files</span>
+                 <div className="space-y-2">
+                    {files.map((f, i) => (
+                      <div key={i} className="flex items-center gap-2 text-xs text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/50 p-2 rounded opacity-100">
+                         <i className="fa-solid fa-paperclip text-brand-500"></i> <span className="truncate">{f.name}</span>
+                         {(f.type.startsWith('image/') && !modelConfig.capabilities.image) && (
+                            <span className="text-[10px] text-amber-500 ml-auto" title="Model cannot see this image">
+                               <i className="fa-solid fa-eye-slash"></i>
+                            </span>
+                         )}
+                      </div>
+                    ))}
+                 </div>
+              </div>
+            )}
+
+            {Object.keys(context).length === 0 && files.length === 0 ? (
+                <div className="flex-1 flex flex-col items-center justify-center text-center opacity-50 p-4 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl">
+                     <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4 text-slate-400">
+                        <i className="fa-regular fa-clipboard text-2xl"></i>
+                     </div>
+                     <p className="text-sm text-slate-500">Your inputs will be drafted here automatically.</p>
+                </div>
+            ) : (
+                <div className="space-y-5 overflow-y-auto custom-scrollbar pr-2 flex-1">
+                    {Object.entries(context).map(([key, value]) => {
+                         if (key.startsWith('custom_notes_') && !value) return null;
+                         if (key.endsWith('_notes')) return null; // Skip internal notes objects
+                         
+                         return (
+                            <div key={key} className="animate-fade-in group">
+                                <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider block mb-1.5 group-hover:text-brand-500 transition-colors">
+                                    {getLabelForKey(key)}
+                                </span>
+                                <div className="text-sm text-slate-800 dark:text-slate-200 font-medium bg-slate-50 dark:bg-slate-800/50 p-3 rounded-lg border border-slate-100 dark:border-slate-800">
+                                    {Array.isArray(value) ? (
+                                        <div className="flex flex-wrap gap-1.5">
+                                            {value.map((v, i) => (
+                                                <span key={i} className="inline-block px-2 py-0.5 bg-white dark:bg-slate-700 rounded text-xs border border-slate-200 dark:border-slate-600 shadow-sm text-slate-600 dark:text-slate-300">
+                                                    {v}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <span className="break-words">{value && typeof value === 'object' ? JSON.stringify(value) : value}</span>
+                                    )}
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
+        </div>
+    </div>
+  );
+};
+
+export default ContextSidebar;
+</file>
+
+<file path="source/components/dynamic/HistoryList.tsx">
+import React, { useState } from 'react';
+import { DiscoveryStep, PrdContext, DynamicField as DynamicFieldType } from '../../types';
+import HistoryItemView from './history/HistoryItemView';
+import HistoryItemEdit from './history/HistoryItemEdit';
+import HistoryItemLock from './history/HistoryItemLock';
+
+interface HistoryListProps {
+  history: DiscoveryStep[];
+  editingStepId: number | null;
+  setEditingStepId: (id: number | null) => void;
+  regeneratingStepId: number | null;
+  onRegenerate: (stepId: number, lockedFields: string[]) => void;
+  onSaveStep: (stepId: number) => void;
+  context: PrdContext;
+  handleFieldChange: (id: string, value: any) => void;
+  getNotesField: (stepId: number) => DynamicFieldType;
+}
+
+const HistoryList: React.FC<HistoryListProps> = ({ 
+  history, editingStepId, setEditingStepId, regeneratingStepId,
+  onRegenerate, onSaveStep, context, handleFieldChange, getNotesField 
+}) => {
+  const [selectionModeStepId, setSelectionModeStepId] = useState<number | null>(null);
+
+  const handleStartRegeneration = (stepId: number) => {
+      setSelectionModeStepId(stepId);
+  };
+
+  const confirmRegeneration = (stepId: number, lockedFieldIds: string[]) => {
+      onRegenerate(stepId, lockedFieldIds);
+      setSelectionModeStepId(null);
+  };
+
+  return (
+    <>
+      {history.map((step) => {
+        const isRegenerating = regeneratingStepId === step.stepId;
+        const isEdited = !!step.lastEdited;
+        const editedTime = step.lastEdited ? new Date(step.lastEdited).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '';
+        
+        return (
+        <div key={step.stepId} className="group transition-all duration-300">
+            <div className="flex gap-4 mb-4">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 text-white shadow-lg transition-colors
+                    ${isRegenerating ? 'bg-amber-500 animate-pulse' : 'bg-brand-600'}`}>
+                    {isRegenerating ? <i className="fa-solid fa-circle-notch animate-spin"></i> : <i className="fa-solid fa-robot"></i>}
+                </div>
+                <div className={`bg-white dark:bg-slate-800 p-4 rounded-2xl rounded-tl-none border shadow-sm text-slate-700 dark:text-slate-300 transition-colors
+                    ${isRegenerating ? 'border-amber-300 dark:border-amber-700' : 'border-slate-200 dark:border-slate-700'}`}>
+                    {isRegenerating ? (
+                        <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400">
+                            <i className="fa-solid fa-wand-magic-sparkles"></i> Re-architecting step based on new context...
+                        </div>
+                    ) : (
+                        step.aiMessage
+                    )}
+                </div>
+            </div>
+
+            <div className="flex justify-end mb-4 relative">
+                {editingStepId === step.stepId ? (
+                    <HistoryItemEdit 
+                        step={step}
+                        context={context}
+                        onSave={() => { onSaveStep(step.stepId); setEditingStepId(null); }}
+                        handleFieldChange={handleFieldChange}
+                        getNotesField={getNotesField}
+                    />
+                ) : selectionModeStepId === step.stepId ? (
+                    <HistoryItemLock 
+                        step={step}
+                        context={context}
+                        onCancel={() => setSelectionModeStepId(null)}
+                        onConfirm={(lockedIds) => confirmRegeneration(step.stepId, lockedIds)}
+                    />
+                ) : (
+                    <HistoryItemView 
+                        step={step}
+                        context={context}
+                        isEdited={isEdited}
+                        editedTime={editedTime}
+                        onEdit={() => setEditingStepId(step.stepId)}
+                        onRegenerateRequest={step.stepId > 1 ? () => handleStartRegeneration(step.stepId) : undefined}
+                    />
+                )}
+            </div>
+        </div>
+      );
+      })}
+    </>
+  );
+};
+
+export default HistoryList;
+</file>
+
+<file path="source/components/refinement/chat/ChatBubble.tsx">
+import React from 'react';
+import { ChatMessage } from '../../../types';
+import ChatMarkdown from '../ChatMarkdown';
+
+interface ChatBubbleProps {
+  message: ChatMessage;
+  isLastAi: boolean;
+  isProcessing: boolean;
+  onVersionChange?: (messageId: string, direction: 'prev' | 'next') => void;
+  onRegenerate?: (messageId: string) => void;
+}
+
+const ChatBubble: React.FC<ChatBubbleProps> = ({ 
+  message, 
+  isLastAi, 
+  isProcessing, 
+  onVersionChange, 
+  onRegenerate 
+}) => {
+  const versions = message.versions || [];
+  const currentIdx = message.currentVersionIndex || 0;
+  const hasVersions = versions.length > 1;
+
+  return (
+    <div className={`flex gap-3 animate-fade-in ${message.role === 'user' ? 'flex-row-reverse' : ''}`}>
+        <div className={`w-8 h-8 rounded shrink-0 flex items-center justify-center text-xs shadow-sm
+            ${message.role === 'ai' ? 'bg-brand-600 dark:bg-brand-700 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-200'}`}>
+        {message.role === 'ai' ? <i className="fa-solid fa-robot"></i> : <i className="fa-solid fa-user"></i>}
+        </div>
+        
+        <div className={`max-w-[85%] flex flex-col ${message.role === 'user' ? 'items-end' : 'items-start'}`}>
+            <div className={`p-3 rounded-lg text-sm shadow-sm overflow-hidden w-full
+                ${message.role === 'ai' 
+                ? 'bg-white/10 text-brand-50 dark:text-slate-200 rounded-tl-none border border-brand-700/50 dark:border-slate-700' 
+                : 'bg-white text-slate-800 dark:bg-slate-800 dark:text-white rounded-tr-none'}`}>
+                {message.isUpdate && (
+                    <div className="mb-2 text-xs font-bold uppercase tracking-wider text-green-300 flex items-center gap-1">
+                        <i className="fa-solid fa-check-circle"></i> Document Updated
+                    </div>
+                )}
+                
+                <ChatMarkdown content={message.text} role={message.role} />
+            </div>
+
+            {/* Version Navigation & Controls (AI Only) */}
+            {message.role === 'ai' && (hasVersions || isLastAi) && (
+                <div className="flex items-center gap-2 mt-1 px-1">
+                    {hasVersions && onVersionChange && (
+                        <div className="flex items-center gap-1 text-[10px] text-brand-300 bg-brand-800/50 dark:bg-slate-800 rounded-md p-0.5 border border-brand-700/50 dark:border-slate-700">
+                            <button 
+                                onClick={() => onVersionChange(message.id, 'prev')}
+                                disabled={currentIdx === 0}
+                                className="w-5 h-4 flex items-center justify-center hover:text-white disabled:opacity-30 disabled:cursor-not-allowed"
+                            >
+                                <i className="fa-solid fa-chevron-left"></i>
+                            </button>
+                            <span className="font-mono px-1 min-w-[20px] text-center select-none">
+                                {currentIdx + 1}/{versions.length}
+                            </span>
+                            <button 
+                                onClick={() => onVersionChange(message.id, 'next')}
+                                disabled={currentIdx === versions.length - 1}
+                                className="w-5 h-4 flex items-center justify-center hover:text-white disabled:opacity-30 disabled:cursor-not-allowed"
+                            >
+                                <i className="fa-solid fa-chevron-right"></i>
+                            </button>
+                        </div>
+                    )}
+                    
+                    {/* Regenerate Button */}
+                    {onRegenerate && (
+                        <button
+                            onClick={() => onRegenerate(message.id)}
+                            disabled={isProcessing}
+                            className="text-[10px] flex items-center gap-1 text-brand-300 hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed px-1.5 py-0.5 rounded hover:bg-brand-800/50"
+                            title="Regenerate Response"
+                        >
+                            <i className="fa-solid fa-rotate"></i> 
+                            {isLastAi ? 'Regenerate' : 'Retry'}
+                        </button>
+                    )}
+                </div>
+            )}
+        </div>
+    </div>
+  );
+};
+
+export default ChatBubble;
+</file>
+
+<file path="source/components/refinement/chat/ChatInput.tsx">
+import React from 'react';
+import AutoTextarea from '../../AutoTextarea';
+
+interface ChatInputProps {
+  value: string;
+  onChange: (val: string) => void;
+  onSend: () => void;
+  onStop: () => void;
+  isProcessing: boolean;
+}
+
+const ChatInput: React.FC<ChatInputProps> = ({ value, onChange, onSend, onStop, isProcessing }) => {
+  return (
+    <div className="mt-auto relative shrink-0">
+        <AutoTextarea 
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            placeholder={isProcessing ? "Processing..." : "Ask a question or request a change..."}
+            className="w-full bg-brand-800 dark:bg-slate-900 text-white placeholder-brand-400 dark:placeholder-slate-500 border border-brand-600 dark:border-slate-600 rounded-lg p-3 pr-12 focus:outline-none focus:ring-2 focus:ring-brand-400 dark:focus:ring-brand-500 text-sm"
+            onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                if (!isProcessing) onSend();
+                }
+            }}
+        />
+        {isProcessing ? (
+            <button 
+                onClick={onStop}
+                className="absolute right-2 bottom-2 w-8 h-8 rounded flex items-center justify-center transition-all bg-red-500 hover:bg-red-600 text-white shadow-lg animate-pulse"
+                title="Stop Generating"
+            >
+                <i className="fa-solid fa-stop"></i>
+            </button>
+        ) : (
+            <button 
+                onClick={onSend}
+                disabled={!value.trim()}
+                className={`absolute right-2 bottom-2 w-8 h-8 rounded flex items-center justify-center transition-all
+                    ${!value.trim() ? 'bg-brand-700 dark:bg-slate-700 text-brand-500 dark:text-slate-500' : 'bg-brand-500 dark:bg-brand-600 text-white hover:bg-brand-400 dark:hover:bg-brand-500'}`}
+            >
+                <i className="fa-solid fa-paper-plane"></i>
+            </button>
+        )}
+    </div>
+  );
+};
+
+export default ChatInput;
+</file>
+
+<file path="source/components/refinement/ChatInterface.tsx">
+import React, { useState } from 'react';
+import { ChatMessage } from '../../types';
+import FilePreviewModal from './FilePreviewModal';
+import ChatBubble from './chat/ChatBubble';
+import ChatInput from './chat/ChatInput';
+
+interface ChatInterfaceProps {
+  showPreview: boolean;
+  messages: ChatMessage[];
+  inputMessage: string;
+  setInputMessage: (msg: string) => void;
+  isProcessing: boolean;
+  onSendMessage: () => void;
+  onStop?: () => void;
+  chatBottomRef: React.RefObject<HTMLDivElement>;
+  files: File[];
+  onRemoveFile: (index: number) => void;
+  onRegenerate?: (messageId: string) => void;
+  onVersionChange?: (messageId: string, direction: 'prev' | 'next') => void;
+}
+
+const ChatInterface: React.FC<ChatInterfaceProps> = ({
+  showPreview,
+  messages,
+  inputMessage,
+  setInputMessage,
+  isProcessing,
+  onSendMessage,
+  onStop,
+  chatBottomRef,
+  files,
+  onRemoveFile,
+  onRegenerate,
+  onVersionChange
+}) => {
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+
+  return (
+    <>
+      <div className={`w-full md:w-[500px] flex flex-col gap-4 shrink-0 ${!showPreview ? 'block' : 'hidden md:flex'}`}>
+        <div className="bg-brand-900 dark:bg-slate-800 text-white p-6 rounded-xl shadow-lg flex-1 flex flex-col border border-transparent dark:border-slate-700 overflow-hidden">
+          
+          {/* Header */}
+          <div className="shrink-0 mb-4">
+              <h3 className="text-lg font-bold mb-1">AI Architect</h3>
+              <p className="text-brand-200 dark:text-slate-300 text-xs">
+              Ask questions or request changes.
+              </p>
+          </div>
+
+          {/* Persistent File List */}
+          {files.length > 0 && (
+              <div className="shrink-0 mb-4">
+                  <div className="text-[10px] font-bold uppercase tracking-wider text-brand-300 dark:text-slate-400 mb-2 flex items-center gap-2">
+                      <i className="fa-solid fa-paperclip"></i> Active Context ({files.length})
+                  </div>
+                  <div className="flex flex-wrap gap-2 max-h-[80px] overflow-y-auto custom-scrollbar pr-1">
+                      {files.map((file, idx) => (
+                          <div 
+                            key={idx} 
+                            onClick={() => setSelectedFile(file)}
+                            className="group flex items-center gap-2 bg-brand-800 dark:bg-slate-700/50 rounded-lg pl-2 pr-1 py-1.5 text-xs border border-brand-700 dark:border-slate-600 cursor-pointer hover:bg-brand-700 dark:hover:bg-slate-700 transition-colors"
+                            title="Click to preview"
+                          >
+                              <span className={`w-1.5 h-1.5 rounded-full ${file.type.startsWith('image') ? 'bg-purple-400' : 'bg-blue-400'}`}></span>
+                              <span className="truncate max-w-[120px] text-brand-100 dark:text-slate-200" title={file.name}>{file.name}</span>
+                              <button 
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    onRemoveFile(idx);
+                                  }}
+                                  className="w-5 h-5 flex items-center justify-center rounded hover:bg-red-500/20 text-brand-400 hover:text-red-300 transition-colors"
+                                  title="Remove file from context"
+                              >
+                                  <i className="fa-solid fa-times"></i>
+                              </button>
+                          </div>
+                      ))}
+                  </div>
+              </div>
+          )}
+
+          {/* Chat History Container */}
+          <div className="flex-1 bg-brand-800/50 dark:bg-slate-900/50 rounded-lg p-4 mb-4 overflow-y-auto border border-brand-700 dark:border-slate-600 custom-scrollbar flex flex-col gap-3">
+            {messages.map((msg, idx) => (
+                <ChatBubble 
+                    key={idx}
+                    message={msg}
+                    isLastAi={msg.role === 'ai' && idx === messages.length - 1}
+                    isProcessing={isProcessing}
+                    onVersionChange={onVersionChange}
+                    onRegenerate={onRegenerate}
+                />
+            ))}
+            <div ref={chatBottomRef}></div>
+          </div>
+
+          <ChatInput 
+            value={inputMessage}
+            onChange={setInputMessage}
+            onSend={onSendMessage}
+            onStop={() => onStop && onStop()}
+            isProcessing={isProcessing}
+          />
+        </div>
+      </div>
+
+      {selectedFile && (
+        <FilePreviewModal 
+          file={selectedFile} 
+          onClose={() => setSelectedFile(null)} 
+        />
+      )}
+    </>
+  );
+};
+
+export default ChatInterface;
+</file>
+
+<file path="source/components/refinement/ChatMarkdown.tsx">
+import React from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+
+interface ChatMarkdownProps {
+  content: string;
+  role: 'user' | 'ai';
+}
+
+const ChatMarkdown: React.FC<ChatMarkdownProps> = ({ content, role }) => {
+  const isAi = role === 'ai';
+  
+  return (
+    <div className={`chat-markdown-content ${isAi ? 'ai-content' : 'user-content'}`}>
+       {/* Override styles for code inside pre blocks to prevent double-styling */}
+       <style>{`
+         .chat-markdown-content pre code {
+            background-color: transparent !important;
+            padding: 0 !important;
+            color: inherit !important;
+            font-size: inherit !important;
+         }
+       `}</style>
+       <ReactMarkdown
+          remarkPlugins={[remarkGfm]}
+          components={{
+             p: ({children}) => <p className="mb-2 last:mb-0 leading-relaxed whitespace-pre-wrap break-words">{children}</p>,
+             ul: ({children}) => <ul className="list-disc ml-4 mb-2 space-y-1">{children}</ul>,
+             ol: ({children}) => <ol className="list-decimal ml-4 mb-2 space-y-1">{children}</ol>,
+             li: ({children}) => <li className="pl-1">{children}</li>,
+             a: ({href, children}) => <a href={href} target="_blank" rel="noreferrer" className="underline font-medium opacity-90 hover:opacity-100">{children}</a>,
+             blockquote: ({children}) => <blockquote className="border-l-2 border-current pl-3 italic opacity-80 my-2">{children}</blockquote>,
+             h1: ({children}) => <h3 className="text-base font-bold mt-3 mb-2">{children}</h3>,
+             h2: ({children}) => <h4 className="text-sm font-bold mt-3 mb-2">{children}</h4>,
+             h3: ({children}) => <h5 className="text-sm font-bold mt-2 mb-1">{children}</h5>,
+             table: ({children}) => <div className="overflow-x-auto my-2"><table className="min-w-full text-xs text-left border-collapse border border-current opacity-80">{children}</table></div>,
+             th: ({children}) => <th className="p-1 border border-current font-bold">{children}</th>,
+             td: ({children}) => <td className="p-1 border border-current">{children}</td>,
+             pre: ({children}) => (
+                <pre className={`p-3 rounded-lg overflow-x-auto my-2 text-xs font-mono border ${
+                   isAi 
+                   ? 'bg-black/30 border-white/10 text-white' 
+                   : 'bg-slate-800 text-slate-200 border-transparent dark:bg-black/30'
+                }`}>
+                   {children}
+                </pre>
+             ),
+             code: ({children}) => (
+                <code className={`font-mono text-xs px-1.5 py-0.5 rounded ${
+                   isAi
+                   ? 'bg-white/20 text-white'
+                   : 'bg-slate-200 text-slate-800 dark:bg-slate-950/50 dark:text-slate-200'
+                }`}>
+                   {children}
+                </code>
+             )
+          }}
+       >
+         {content}
+       </ReactMarkdown>
+    </div>
+  );
+};
+
+export default ChatMarkdown;
+</file>
+
+<file path="source/components/refinement/DocPreview.tsx">
+import React from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import { slugify } from '../../hooks/useRefinementLogic';
+
+interface DocPreviewProps {
+  content: string;
+  showPreview: boolean;
+  onScrollToSection: (id: string) => void;
+}
+
+const DocPreview: React.FC<DocPreviewProps> = ({ content, showPreview, onScrollToSection }) => {
+  // Custom components for ReactMarkdown to inject IDs
+  const MarkdownComponents = {
+    h1: ({ children, ...props }: any) => {
+      const text = String(children);
+      const id = slugify(text);
+      return <h1 id={id} {...props}>{children}</h1>;
+    },
+    h2: ({ children, ...props }: any) => {
+      const text = String(children);
+      const id = slugify(text);
+      return <h2 id={id} {...props}>{children}</h2>;
+    },
+    h3: ({ children, ...props }: any) => {
+      const text = String(children);
+      const id = slugify(text);
+      return <h3 id={id} {...props}>{children}</h3>;
+    },
+    // Intercept links to make them smooth scroll if they are internal anchor links
+    a: ({ href, children, ...props }: any) => {
+      if (href?.startsWith('#')) {
+        return (
+          <a 
+            href={href} 
+            onClick={(e) => {
+              e.preventDefault();
+              onScrollToSection(href.substring(1));
+            }}
+            {...props}
+          >
+            {children}
+          </a>
+        );
+      }
+      return <a href={href} {...props}>{children}</a>;
+    }
+  };
+
+  return (
+    <div className={`flex-1 bg-white dark:bg-slate-900 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col transition-colors duration-300 ${showPreview ? 'block' : 'hidden md:flex'}`}>
+      <div className="bg-slate-50 dark:bg-slate-800 px-6 py-3 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center shrink-0">
+        <span className="font-mono text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider font-bold">Document Preview</span>
+        <span className="text-xs text-slate-400 dark:text-slate-500">Read-only</span>
+      </div>
+      <div className="flex-1 overflow-y-auto overflow-x-hidden p-8 md:p-12 bg-white dark:bg-slate-900 scroll-smooth custom-scrollbar" id="prd-document">
+         <div className="markdown-body max-w-none break-words">
+           <ReactMarkdown 
+             remarkPlugins={[remarkGfm]}
+             components={MarkdownComponents}
+           >
+             {content}
+           </ReactMarkdown>
+         </div>
+      </div>
+    </div>
+  );
+};
+
+export default DocPreview;
+</file>
+
+<file path="source/components/refinement/FilePreviewModal.tsx">
+import React, { useState, useEffect } from 'react';
+
+interface FilePreviewModalProps {
+  file: File | null;
+  onClose: () => void;
+}
+
+const TEXT_EXTENSIONS = [
+  'txt', 'md', 'json', 'js', 'ts', 'tsx', 'jsx', 'html', 'css', 'csv', 
+  'xml', 'yml', 'yaml', 'py', 'rb', 'java', 'c', 'cpp', 'sh', 'bat', 'env'
+];
+
+const FilePreviewModal: React.FC<FilePreviewModalProps> = ({ file, onClose }) => {
+  const [content, setContent] = useState<string | null>(null);
+  const [objectUrl, setObjectUrl] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!file) return;
+
+    setLoading(true);
+    setError(null);
+    setContent(null);
+    if (objectUrl) URL.revokeObjectURL(objectUrl);
+    setObjectUrl(null);
+
+    const ext = file.name.split('.').pop()?.toLowerCase() || '';
+    const isImage = file.type.startsWith('image/');
+    const isPdf = file.type === 'application/pdf';
+    const isText = file.type.startsWith('text/') || TEXT_EXTENSIONS.includes(ext);
+
+    if (isImage || isPdf) {
+      const url = URL.createObjectURL(file);
+      setObjectUrl(url);
+      setLoading(false);
+    } else if (isText) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setContent(e.target?.result as string);
+        setLoading(false);
+      };
+      reader.onerror = () => {
+        setError("Failed to read file content.");
+        setLoading(false);
+      };
+      reader.readAsText(file);
+    } else {
+      setError("Preview not available for this file type.");
+      setLoading(false);
+    }
+
+    // Cleanup
+    return () => {
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [file]);
+
+  // Handle ESC key
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
+  }, [onClose]);
+
+  if (!file) return null;
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/80 backdrop-blur-sm animate-fade-in p-4">
+      <div className="bg-white dark:bg-slate-900 rounded-xl shadow-2xl w-full max-w-5xl h-[85vh] flex flex-col border border-slate-200 dark:border-slate-700 overflow-hidden relative">
+        
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 shrink-0">
+          <div className="flex items-center gap-3 overflow-hidden">
+            <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold shrink-0
+                  ${file.type.startsWith('image/') ? 'bg-purple-100 text-purple-600' : 'bg-blue-100 text-blue-600'}`}>
+               {file.type.startsWith('image/') ? <i className="fa-regular fa-image"></i> : <i className="fa-regular fa-file-lines"></i>}
+            </div>
+            <div className="min-w-0">
+                <h3 className="font-bold text-slate-800 dark:text-white truncate">{file.name}</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                    {(file.size / 1024).toFixed(1)} KB &bull; {file.type || 'Unknown Type'}
+                </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            {objectUrl && (
+                <a 
+                    href={objectUrl} 
+                    target="_blank" 
+                    rel="noreferrer"
+                    className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 transition-colors"
+                    title="Open in new tab"
+                >
+                    <i className="fa-solid fa-arrow-up-right-from-square text-sm"></i>
+                </a>
+            )}
+            <button 
+                onClick={onClose}
+                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 transition-colors"
+            >
+                <i className="fa-solid fa-xmark text-lg"></i>
+            </button>
+          </div>
+        </div>
+
+        {/* Content Area */}
+        <div className="flex-1 overflow-auto bg-slate-100 dark:bg-slate-950/50 p-4 flex items-center justify-center relative">
+            {loading && (
+                <div className="absolute inset-0 flex items-center justify-center bg-white/50 dark:bg-slate-900/50 z-10">
+                    <i className="fa-solid fa-circle-notch animate-spin text-3xl text-brand-500"></i>
+                </div>
+            )}
+
+            {error ? (
+                <div className="text-center text-slate-500 dark:text-slate-400">
+                    <div className="w-16 h-16 bg-slate-200 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
+                        <i className="fa-regular fa-eye-slash"></i>
+                    </div>
+                    <p>{error}</p>
+                </div>
+            ) : (
+                <>
+                    {/* Image Preview */}
+                    {file.type.startsWith('image/') && objectUrl && (
+                        <img src={objectUrl} alt={file.name} className="max-w-full max-h-full object-contain shadow-lg rounded-lg" />
+                    )}
+
+                    {/* PDF Preview - Using Object tag with fallback */}
+                    {file.type === 'application/pdf' && objectUrl && (
+                        <object 
+                            data={objectUrl} 
+                            type="application/pdf"
+                            className="w-full h-full rounded-lg shadow-sm border border-slate-200 dark:border-slate-700 bg-white"
+                        >
+                            {/* Fallback content if object fails to load (e.g. blocked by iframe policies) */}
+                            <div className="flex flex-col items-center justify-center h-full text-slate-500 dark:text-slate-400 p-8 text-center bg-slate-50 dark:bg-slate-900">
+                                <i className="fa-regular fa-file-pdf text-5xl mb-6 text-red-500 opacity-80"></i>
+                                <h4 className="text-lg font-bold mb-2 text-slate-700 dark:text-slate-200">Preview Not Available</h4>
+                                <p className="mb-6 max-w-sm">
+                                    Your browser or environment is blocking the PDF preview. You can view the file by opening it in a new tab.
+                                </p>
+                                <a 
+                                    href={objectUrl} 
+                                    target="_blank" 
+                                    rel="noreferrer"
+                                    className="px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-lg font-medium transition-colors shadow-sm flex items-center gap-2"
+                                >
+                                    Open PDF <i className="fa-solid fa-arrow-up-right-from-square text-xs"></i>
+                                </a>
+                            </div>
+                        </object>
+                    )}
+
+                    {/* Text/Code Preview */}
+                    {content !== null && (
+                        <div className="w-full h-full bg-white dark:bg-slate-900 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700 p-6 overflow-auto">
+                            <pre className="font-mono text-xs sm:text-sm text-slate-800 dark:text-slate-200 whitespace-pre-wrap break-words">
+                                {content}
+                            </pre>
+                        </div>
+                    )}
+                </>
+            )}
+        </div>
+
+      </div>
+    </div>
+  );
+};
+
+export default FilePreviewModal;
+</file>
+
+<file path="source/components/refinement/RefinementToolbar.tsx">
+import React from 'react';
+
+interface RefinementToolbarProps {
+  onBack: () => void;
+  showPreview: boolean;
+  setShowPreview: (show: boolean) => void;
+  onDownloadMd: () => void;
+  onDownloadPdf: () => void;
+}
+
+const RefinementToolbar: React.FC<RefinementToolbarProps> = ({ 
+  onBack, 
+  showPreview, 
+  setShowPreview, 
+  onDownloadMd, 
+  onDownloadPdf 
+}) => {
+  return (
+    <div className="flex justify-between items-center bg-white dark:bg-slate-900 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 shrink-0 transition-colors duration-300">
+      <button onClick={onBack} className="text-slate-500 dark:text-slate-400 hover:text-brand-600 dark:hover:text-brand-400 font-medium flex items-center gap-2 transition-colors">
+        <i className="fa-solid fa-arrow-left"></i> Edit Inputs
+      </button>
+      <div className="flex gap-2">
+         <button onClick={() => setShowPreview(!showPreview)} className="md:hidden px-3 py-2 bg-slate-100 dark:bg-slate-800 dark:text-slate-200 rounded text-sm font-medium">
+           {showPreview ? 'Show Chat' : 'Show Doc'}
+         </button>
+         <button onClick={onDownloadMd} className="px-4 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 font-medium text-slate-700 dark:text-slate-200 flex items-center gap-2">
+           <i className="fa-brands fa-markdown"></i> .MD
+         </button>
+         <button onClick={onDownloadPdf} className="px-4 py-2 bg-slate-900 dark:bg-slate-700 text-white rounded-lg hover:bg-slate-800 dark:hover:bg-slate-600 font-medium flex items-center gap-2">
+           <i className="fa-solid fa-file-pdf"></i> PDF
+         </button>
+      </div>
+    </div>
+  );
+};
+
+export default RefinementToolbar;
+</file>
+
+<file path="source/components/refinement/TOCSidebar.tsx">
+import React from 'react';
+import { TocItem } from '../../hooks/useRefinementLogic';
+
+interface TOCSidebarProps {
+  toc: TocItem[];
+  activeId: string;
+  onScrollToSection: (id: string) => void;
+}
+
+const TOCSidebar: React.FC<TOCSidebarProps> = ({ toc, activeId, onScrollToSection }) => {
+  return (
+    <div className="hidden xl:flex w-64 flex-col bg-transparent rounded-lg shrink-0 overflow-hidden">
+      <div className="p-3">
+         <h3 className="text-sm font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-3">Contents</h3>
+         <nav className="space-y-1 overflow-y-auto overflow-x-hidden max-h-[calc(100vh-200px)] pr-2 custom-scrollbar">
+            {toc.map((item, index) => {
+              const isActive = activeId === item.id;
+              return (
+                <button
+                  key={`${item.id}-${index}`}
+                  onClick={() => onScrollToSection(item.id)}
+                  className={`block w-full text-left text-sm py-1.5 px-3 rounded-md transition-all truncate border-l-2
+                    ${isActive 
+                      ? 'border-brand-500 bg-brand-50 dark:bg-brand-900/30 text-brand-700 dark:text-brand-300 font-medium' 
+                      : 'border-transparent text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50 hover:text-slate-900 dark:hover:text-slate-200'}
+                    ${item.level === 2 ? 'ml-3' : ''} 
+                    ${item.level === 3 ? 'ml-6' : ''}
+                  `}
+                  title={item.text}
+                >
+                  {item.text}
+                </button>
+              );
+            })}
+            {toc.length === 0 && <div className="text-sm text-slate-400 italic">No headers found.</div>}
+         </nav>
+      </div>
+    </div>
+  );
+};
+
+export default TOCSidebar;
+</file>
+
+<file path="source/components/DynamicIntake.tsx">
+import React from 'react';
+import { DiscoveryStep, PrdContext, ModelConfig } from '../types';
+import FileUpload from './FileUpload';
+import { useDynamicIntakeLogic } from '../hooks/useDynamicIntakeLogic';
+import ContextSidebar from './dynamic/ContextSidebar';
+import HistoryList from './dynamic/HistoryList';
+import ActiveStep from './dynamic/ActiveStep';
+
+export interface DynamicIntakeProps {
+  onComplete: (context: PrdContext, files: File[]) => void;
+  onCancel: () => void;
+  modelConfig: ModelConfig;
+  systemPrompt: string;
+  
+  // Lifted State
+  context: PrdContext;
+  setContext: (ctx: PrdContext) => void;
+  history: DiscoveryStep[];
+  setHistory: (history: DiscoveryStep[]) => void;
+  currentStep: DiscoveryStep;
+  setCurrentStep: (step: DiscoveryStep) => void;
+  files: File[];
+  setFiles: (files: File[]) => void;
+}
+
+// Re-export for compatibility if needed, though now defined in constants.ts
+export { DEFAULT_INITIAL_STEP } from '../constants';
+
+const DynamicIntake: React.FC<DynamicIntakeProps> = (props) => {
+  const {
+    isAiLoading,
+    partialStep,
+    loadingStatus,
+    showErrors,
+    apiError,
+    editingStepId,
+    setEditingStepId,
+    regeneratingStepId,
+    bottomRef,
+    handleFieldChange,
+    handleNextClick,
+    handleRegenerateStep,
+    handleRegenerateHistoryStep,
+    handleSaveHistoryStep,
+    handleStop,
+    getLabelForKey,
+    getNotesField,
+    isFieldValid
+  } = useDynamicIntakeLogic({
+    context: props.context,
+    setContext: props.setContext,
+    history: props.history,
+    setHistory: props.setHistory,
+    currentStep: props.currentStep,
+    setCurrentStep: props.setCurrentStep,
+    files: props.files,
+    modelConfig: props.modelConfig,
+    systemPrompt: props.systemPrompt
+  });
+
+  return (
+    <div className="max-w-[90%] mx-auto flex flex-col gap-6 min-h-[600px] pb-20">
+      
+      {/* Header Area */}
+      <div className="flex items-center justify-between mb-4 px-1">
+        <button onClick={props.onCancel} className="text-slate-500 hover:text-brand-500 transition-colors flex items-center gap-2 text-sm font-medium">
+          <i className="fa-solid fa-arrow-left"></i> Exit Interview
+        </button>
+        <span className="bg-brand-100 dark:bg-brand-900/30 text-brand-700 dark:text-brand-300 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
+          AI Interview Mode
+        </span>
+      </div>
+
+      {/* Main Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        {/* Main Chat Flow Column */}
+        <div className="lg:col-span-2 flex flex-col gap-8">
+            
+            <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                <FileUpload files={props.files} onFilesChange={props.setFiles} label="Upload Context Documents" modelConfig={props.modelConfig} />
+            </div>
+
+            {/* History */}
+            <HistoryList 
+              history={props.history}
+              editingStepId={editingStepId}
+              setEditingStepId={setEditingStepId}
+              regeneratingStepId={regeneratingStepId}
+              onRegenerate={handleRegenerateHistoryStep}
+              onSaveStep={handleSaveHistoryStep}
+              context={props.context}
+              handleFieldChange={handleFieldChange}
+              getNotesField={getNotesField}
+            />
+
+            {/* Current Active Step */}
+            <ActiveStep 
+              isAiLoading={isAiLoading}
+              partialStep={partialStep}
+              loadingStatus={loadingStatus}
+              currentStep={props.currentStep}
+              context={props.context}
+              handleFieldChange={handleFieldChange}
+              getNotesField={getNotesField}
+              showErrors={showErrors}
+              isFieldValid={isFieldValid}
+              apiError={apiError}
+              onComplete={props.onComplete}
+              files={props.files}
+              handleNextClick={handleNextClick}
+              onRegenerate={handleRegenerateStep}
+              onStop={handleStop}
+            />
+            
+            <div ref={bottomRef}></div>
+        </div>
+
+        {/* Right Sidebar: Context Summary */}
+        <ContextSidebar 
+          context={props.context}
+          files={props.files}
+          modelConfig={props.modelConfig}
+          getLabelForKey={getLabelForKey}
+        />
+
+      </div>
+    </div>
+  );
+};
+
+export default DynamicIntake;
+</file>
+
+<file path="source/components/RefinementView.tsx">
+import React from 'react';
+import { ModelConfig } from '../types';
+import { useRefinementLogic } from '../hooks/useRefinementLogic';
+import RefinementToolbar from './refinement/RefinementToolbar';
+import TOCSidebar from './refinement/TOCSidebar';
+import DocPreview from './refinement/DocPreview';
+import ChatInterface from './refinement/ChatInterface';
+
+interface RefinementViewProps {
+  initialContent: string;
+  onBack: () => void;
+  files: File[];
+  onFilesChange: (files: File[]) => void;
+  modelConfig: ModelConfig;
+  systemPrompt: string;
+}
+
+const RefinementView: React.FC<RefinementViewProps> = ({ initialContent, onBack, files, onFilesChange, modelConfig, systemPrompt }) => {
+  const {
+    content,
+    inputMessage,
+    setInputMessage,
+    isProcessing,
+    showPreview,
+    setShowPreview,
+    toc,
+    activeId,
+    messages,
+    chatBottomRef,
+    handleSendMessage,
+    handleRegenerate, // Hook export
+    handleVersionChange, // Hook export
+    handleStop,
+    handleDownloadPdf,
+    handleDownloadMd,
+    scrollToSection
+  } = useRefinementLogic({ initialContent, files, modelConfig, systemPrompt });
+
+  const handleRemoveFile = (index: number) => {
+    const newFiles = [...files];
+    newFiles.splice(index, 1);
+    onFilesChange(newFiles);
+  };
+
+  return (
+    <div className="flex flex-col h-[calc(100vh-100px)] w-full max-w-[98%] mx-auto gap-4 px-2">
+      
+      <RefinementToolbar 
+        onBack={onBack}
+        showPreview={showPreview}
+        setShowPreview={setShowPreview}
+        onDownloadMd={() => handleDownloadMd(content, 'PRD_Generated.md')}
+        onDownloadPdf={() => handleDownloadPdf('prd-document', 'PRD_Generated.pdf')}
+      />
+
+      <div className="flex-1 flex gap-4 overflow-hidden">
+        
+        <TOCSidebar 
+          toc={toc} 
+          activeId={activeId} 
+          onScrollToSection={scrollToSection} 
+        />
+
+        <DocPreview 
+          content={content}
+          showPreview={showPreview}
+          onScrollToSection={scrollToSection}
+        />
+
+        <ChatInterface 
+          showPreview={showPreview}
+          messages={messages}
+          inputMessage={inputMessage}
+          setInputMessage={setInputMessage}
+          isProcessing={isProcessing}
+          onSendMessage={handleSendMessage}
+          onStop={handleStop}
+          chatBottomRef={chatBottomRef}
+          files={files}
+          onRemoveFile={handleRemoveFile}
+          onRegenerate={handleRegenerate} // Pass to UI
+          onVersionChange={handleVersionChange} // Pass to UI
+        />
+        
+      </div>
+    </div>
+  );
+};
+
+export default RefinementView;
+</file>
+
+<file path="source/hooks/dynamic/useDynamicGeneration.ts">
+import { useState, useRef } from 'react';
+import { PrdContext, DiscoveryStep, ModelConfig } from '../../types';
+import { getNextDiscoveryStep } from '../../services/workflows/discovery';
+import { parsePartialStream } from '../../utils/aiStreamParsers';
+
+interface UseDynamicGenerationProps {
+  context: PrdContext;
+  history: DiscoveryStep[];
+  setHistory: (h: DiscoveryStep[]) => void;
+  currentStep: DiscoveryStep;
+  setCurrentStep: (s: DiscoveryStep) => void;
+  files: File[];
+  modelConfig: ModelConfig;
+  systemPrompt: string;
+  setEditingStepId: (id: number | null) => void;
+}
+
+export const useDynamicGeneration = ({
+  context, history, setHistory, currentStep, setCurrentStep, files, modelConfig, systemPrompt, setEditingStepId
+}: UseDynamicGenerationProps) => {
+  
+  const [isAiLoading, setIsAiLoading] = useState(false);
+  const [partialStep, setPartialStep] = useState<Partial<DiscoveryStep>>({});
+  const [loadingStatus, setLoadingStatus] = useState('Thinking...');
+  const [apiError, setApiError] = useState<string | null>(null);
+  const [regeneratingStepId, setRegeneratingStepId] = useState<number | null>(null);
+  
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const streamBufferRef = useRef<string>('');
+
+  const executeGeneration = async (
+    targetHistory: DiscoveryStep[], 
+    lockedFields: any[] = [], 
+    onSuccess: (data: DiscoveryStep) => void,
+    onStream: (status: string) => void
+  ) => {
+    setIsAiLoading(true);
+    setApiError(null);
+    setPartialStep({});
+    streamBufferRef.current = '';
+    abortControllerRef.current = new AbortController();
+
+    try {
+      const data = await getNextDiscoveryStep(
+        context,
+        targetHistory,
+        files,
+        modelConfig.id,
+        (chunk) => {
+            streamBufferRef.current += chunk;
+            const parsed = parsePartialStream(streamBufferRef.current);
+            setPartialStep({ aiMessage: parsed.aiMessage, fields: parsed.fields });
+            setLoadingStatus(parsed.status);
+            onStream(parsed.status);
+        },
+        null,
+        systemPrompt,
+        abortControllerRef.current.signal,
+        lockedFields
+      );
+      onSuccess(data);
+    } catch (error: any) {
+      if (error.message.includes('aborted')) return;
+      console.error("Generation failed", error);
+      setApiError(error.message || "An unexpected error occurred.");
+    } finally {
+      setIsAiLoading(false);
+      abortControllerRef.current = null;
+    }
+  };
+
+  const handleNext = () => {
+    if (isAiLoading) return;
+    setLoadingStatus('Connecting...');
+    const newHistory = [...history, currentStep];
+    setHistory(newHistory);
+    
+    executeGeneration(
+      newHistory,
+      [],
+      (data) => {
+        setCurrentStep(data);
+        setPartialStep({});
+      },
+      () => {}
+    ).catch(() => setHistory(history)); // Rollback on error handled in execute
+  };
+
+  const handleRegenerateStep = (lockedFieldIds: string[] = []) => {
+    if (isAiLoading) return;
+    setLoadingStatus('Regenerating step...');
+    const lockedFields = currentStep.fields.filter(f => lockedFieldIds.includes(f.id));
+    
+    executeGeneration(
+      history,
+      lockedFields,
+      (data) => {
+        // Merge locked fields if missing
+        const newFields = [...data.fields];
+        lockedFields.forEach(lf => {
+            if (!newFields.find(nf => nf.id === lf.id)) newFields.unshift(lf);
+        });
+        data.fields = newFields;
+        data.stepId = currentStep.stepId;
+        setCurrentStep(data);
+        setPartialStep({});
+      },
+      () => {}
+    );
+  };
+
+  const handleRegenerateHistoryStep = (stepId: number, lockedFieldIds: string[]) => {
+    if (isAiLoading) return;
+    const targetIndex = history.findIndex(s => s.stepId === stepId);
+    if (targetIndex === -1) return;
+
+    const previousHistory = history.slice(0, targetIndex);
+    const targetStep = history[targetIndex];
+    const lockedFields = targetStep.fields.filter(f => lockedFieldIds.includes(f.id));
+
+    setRegeneratingStepId(stepId);
+    setLoadingStatus('Re-architecting step...');
+
+    executeGeneration(
+      previousHistory,
+      lockedFields,
+      (data) => {
+        const newFields = [...data.fields];
+        lockedFields.forEach(lf => {
+            if (!newFields.find(nf => nf.id === lf.id)) newFields.unshift(lf);
+        });
+        data.fields = newFields;
+        data.stepId = stepId;
+        
+        const newHistory = [...history];
+        newHistory[targetIndex] = data;
+        setHistory(newHistory);
+        setRegeneratingStepId(null);
+      },
+      () => setLoadingStatus('Regenerating options...')
+    ).then(() => setRegeneratingStepId(null));
+  };
+
+  const handleStop = () => {
+    if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+        abortControllerRef.current = null;
+        setIsAiLoading(false);
+        setApiError("Generation stopped by user.");
+    }
+  };
+
+  return {
+    isAiLoading,
+    partialStep,
+    loadingStatus,
+    apiError,
+    setApiError,
+    regeneratingStepId,
+    handleNext,
+    handleRegenerateStep,
+    handleRegenerateHistoryStep,
+    handleStop
+  };
+};
+</file>
+
+<file path="source/hooks/dynamic/useDynamicValidation.ts">
+import { PrdContext, DiscoveryStep, DynamicField } from "../../types";
+
+export const useDynamicValidation = (context: PrdContext, currentStep: DiscoveryStep, history: DiscoveryStep[]) => {
+  
+  const isFieldValid = (fieldId: string) => {
+    if (fieldId.startsWith('custom_notes_')) return true;
+    const val = context[fieldId];
+    if (Array.isArray(val)) return val.length > 0;
+    return val && val.trim().length > 0;
+  };
+
+  const isCurrentStepValid = () => {
+    return currentStep.fields.every(f => {
+      if (f.dependsOn && context[f.dependsOn.fieldId] !== f.dependsOn.value) {
+        return true;
+      }
+      return isFieldValid(f.id);
+    });
+  };
+
+  const getLabelForKey = (key: string) => {
+    if (key.startsWith('custom_notes_')) return "Additional Notes";
+    let field = currentStep.fields.find(f => f.id === key);
+    if (field) return field.label;
+    for (const step of history) {
+        field = step.fields.find(f => f.id === key);
+        if (field) return field.label;
+    }
+    return key.replace(/([A-Z])/g, ' $1').trim();
+  };
+
+  const getNotesField = (stepId: number): DynamicField => ({
+    id: `custom_notes_${stepId}`,
+    type: 'textarea',
+    label: 'Additional Notes / Custom Instructions',
+    placeholder: 'Any specific details, clarifications, or constraints for this section...',
+    description: 'Optional: Add free-form context that doesn\'t fit in the fields above.'
+  });
+
+  return { isFieldValid, isCurrentStepValid, getLabelForKey, getNotesField };
+};
+</file>
+
+<file path="source/hooks/refinement/useChatSession.ts">
+import { useState, useRef, useEffect } from 'react';
+import { ChatMessage, ModelConfig } from '../../types';
+import { chatWithPrd } from '../../services/geminiService';
+
+interface UseChatSessionProps {
+  content: string;
+  setContent: (c: string) => void;
+  files: File[];
+  modelConfig: ModelConfig;
+  systemPrompt: string;
+}
+
+export const useChatSession = ({ content, setContent, files, modelConfig, systemPrompt }: UseChatSessionProps) => {
+  const [messages, setMessages] = useState<ChatMessage[]>([
+    {
+      id: 'init',
+      role: 'ai',
+      text: "I've drafted your PRD based on the blueprint. Check the Architecture and Requirements sections. \n\nTip: You can ask me questions about the document, or ask me to make specific changes.",
+      versions: ["I've drafted your PRD based on the blueprint. Check the Architecture and Requirements sections. \n\nTip: You can ask me questions about the document, or ask me to make specific changes."],
+      currentVersionIndex: 0,
+      timestamp: Date.now()
+    }
+  ]);
+  const [inputMessage, setInputMessage] = useState('');
+  const [isProcessing, setIsProcessing] = useState(false);
+  
+  const chatBottomRef = useRef<HTMLDivElement>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    if (chatBottomRef.current) {
+        chatBottomRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages]);
+
+  const handleStop = () => {
+    if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+        abortControllerRef.current = null;
+        setIsProcessing(false);
+    }
+  };
+
+  const generateResponse = async (targetMsgId: string, contextHistory: ChatMessage[], userRequest: string) => {
+    abortControllerRef.current = new AbortController();
+
+    try {
+      let accumulatedText = '';
+      
+      const result = await chatWithPrd(
+        content, 
+        contextHistory, 
+        userRequest, 
+        files, 
+        modelConfig.id, 
+        (chunk) => {
+          accumulatedText += chunk;
+          setMessages(prev => prev.map(m => {
+              if (m.id !== targetMsgId) return m;
+              const newVersions = [...(m.versions || [])];
+              const idx = m.currentVersionIndex || 0;
+              newVersions[idx] = accumulatedText;
+              return { ...m, text: accumulatedText, versions: newVersions };
+          }));
+        },
+        null, 
+        systemPrompt,
+        abortControllerRef.current.signal
+      );
+      
+      setMessages(prev => prev.map(m => {
+          if (m.id !== targetMsgId) return m;
+          const newVersions = [...(m.versions || [])];
+          const idx = m.currentVersionIndex || 0;
+          newVersions[idx] = result.text;
+          return { ...m, text: result.text, versions: newVersions, isUpdate: !!result.newPrd };
+      }));
+
+      if (result.newPrd) {
+        setContent(result.newPrd);
+      }
+
+    } catch (e: any) {
+      if (e.message.includes('aborted')) {
+          setMessages(prev => prev.map(m => {
+              if (m.id !== targetMsgId) return m;
+              return { ...m, text: m.text + " [Stopped by user]" };
+          }));
+          return;
+      }
+      setMessages(prev => prev.map(m => {
+          if (m.id !== targetMsgId) return m;
+          const errorText = "Sorry, I encountered an error. Please try again.";
+          const newVersions = [...(m.versions || [])];
+          const idx = m.currentVersionIndex || 0;
+          newVersions[idx] = errorText;
+          return { ...m, text: errorText, versions: newVersions };
+      }));
+    } finally {
+      setIsProcessing(false);
+      abortControllerRef.current = null;
+    }
+  };
+
+  const handleSendMessage = async () => {
+    if (!inputMessage.trim() || isProcessing) return;
+    
+    const userMsg: ChatMessage = {
+      id: Date.now().toString(),
+      role: 'user',
+      text: inputMessage,
+      versions: [inputMessage],
+      currentVersionIndex: 0,
+      timestamp: Date.now()
+    };
+
+    setMessages(prev => [...prev, userMsg]);
+    setInputMessage('');
+    setIsProcessing(true);
+
+    const aiMsgId = (Date.now() + 1).toString();
+    const newAiMsg: ChatMessage = {
+        id: aiMsgId,
+        role: 'ai',
+        text: '',
+        versions: [''],
+        currentVersionIndex: 0,
+        timestamp: Date.now()
+    };
+    
+    setMessages(prev => [...prev, newAiMsg]);
+    await generateResponse(aiMsgId, [...messages, userMsg], userMsg.text);
+  };
+
+  const handleRegenerate = async (messageId: string) => {
+    if (isProcessing) return;
+    const index = messages.findIndex(m => m.id === messageId);
+    if (index === -1) return;
+
+    const contextMessages = messages.slice(0, index);
+    let lastUserText = "Continue";
+    if (index > 0 && messages[index - 1].role === 'user') {
+        lastUserText = messages[index - 1].text;
+    }
+
+    setMessages(prev => prev.slice(0, index + 1));
+    setIsProcessing(true);
+
+    setMessages(prev => {
+        const newMsgs = [...prev];
+        const targetMsg = { ...newMsgs[index] };
+        if (!targetMsg.versions) {
+            targetMsg.versions = [targetMsg.text];
+            targetMsg.currentVersionIndex = 0;
+        }
+        targetMsg.versions = [...targetMsg.versions, ''];
+        targetMsg.currentVersionIndex = targetMsg.versions.length - 1;
+        targetMsg.text = ''; 
+        newMsgs[index] = targetMsg;
+        return newMsgs;
+    });
+
+    await generateResponse(messageId, contextMessages, lastUserText);
+  };
+
+  const handleVersionChange = (messageId: string, direction: 'prev' | 'next') => {
+    setMessages(prev => prev.map(msg => {
+        if (msg.id !== messageId || !msg.versions) return msg;
+        const currentIndex = msg.currentVersionIndex || 0;
+        let newIndex = direction === 'prev' ? currentIndex - 1 : currentIndex + 1;
+        if (newIndex < 0) newIndex = 0;
+        if (newIndex >= msg.versions.length) newIndex = msg.versions.length - 1;
+        return { ...msg, currentVersionIndex: newIndex, text: msg.versions[newIndex] };
+    }));
+  };
+
+  return {
+    messages,
+    inputMessage,
+    setInputMessage,
+    isProcessing,
+    chatBottomRef,
+    handleSendMessage,
+    handleRegenerate,
+    handleVersionChange,
+    handleStop
+  };
+};
+</file>
+
+<file path="source/hooks/refinement/useTOC.ts">
+import { useState, useEffect } from 'react';
+
+export interface TocItem {
+  id: string;
+  text: string;
+  level: number;
+}
+
+export const slugify = (text: string) => {
+  return text
+    .toString()
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/[^\w\-]+/g, '')
+    .replace(/\-\-+/g, '-');
+};
+
+export const useTOC = (content: string) => {
+  const [toc, setToc] = useState<TocItem[]>([]);
+  const [activeId, setActiveId] = useState<string>('');
+
+  // Parse headers for TOC
+  useEffect(() => {
+    const lines = content.split('\n');
+    const headers: TocItem[] = [];
+    let inCodeBlock = false;
+
+    lines.forEach(line => {
+      if (line.trim().startsWith('```')) {
+        inCodeBlock = !inCodeBlock;
+        return;
+      }
+      if (inCodeBlock) return;
+
+      const match = line.match(/^(#{1,3})\s+(.+)$/);
+      if (match) {
+        const id = slugify(match[2].trim());
+        headers.push({
+          level: match[1].length,
+          text: match[2].trim(),
+          id: id
+        });
+        if (!activeId) setActiveId(id);
+      }
+    });
+    setToc(headers);
+  }, [content]);
+
+  // Scroll Spy
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollContainer = document.getElementById('prd-document');
+      if (!scrollContainer) return;
+      
+      for (const item of toc) {
+        const element = document.getElementById(item.id);
+        if (element) {
+          const rect = element.getBoundingClientRect();
+          const containerRect = scrollContainer.getBoundingClientRect();
+          if (rect.top >= containerRect.top - 50 && rect.top < containerRect.bottom) {
+             setActiveId(item.id);
+             break;
+          }
+        }
+      }
+    };
+
+    const container = document.getElementById('prd-document');
+    if (container) {
+       container.addEventListener('scroll', handleScroll);
+       return () => container.removeEventListener('scroll', handleScroll);
+    }
+  }, [toc]);
+
+  const scrollToSection = (id: string) => {
+    const element = document.getElementById(id);
+    if (element) {
+      setActiveId(id);
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
+  return { toc, activeId, scrollToSection };
+};
+</file>
+
+<file path="source/hooks/useDynamicIntakeLogic.ts">
+import { useState, useRef, useEffect } from 'react';
+import { PrdContext, DiscoveryStep, ModelConfig } from '../types';
+import { useDynamicValidation } from './dynamic/useDynamicValidation';
+import { useDynamicGeneration } from './dynamic/useDynamicGeneration';
+
+interface UseDynamicIntakeLogicProps {
+  context: PrdContext;
+  setContext: (ctx: PrdContext) => void;
+  history: DiscoveryStep[];
+  setHistory: (history: DiscoveryStep[]) => void;
+  currentStep: DiscoveryStep;
+  setCurrentStep: (step: DiscoveryStep) => void;
+  files: File[];
+  modelConfig: ModelConfig;
+  systemPrompt: string;
+}
+
+export const useDynamicIntakeLogic = ({
+  context, setContext, history, setHistory, currentStep, setCurrentStep, files, modelConfig, systemPrompt
+}: UseDynamicIntakeLogicProps) => {
+  const [editingStepId, setEditingStepId] = useState<number | null>(null);
+  const [showErrors, setShowErrors] = useState(false);
+  const bottomRef = useRef<HTMLDivElement>(null);
+
+  const { isFieldValid, isCurrentStepValid, getLabelForKey, getNotesField } = useDynamicValidation(context, currentStep, history);
+  
+  const generation = useDynamicGeneration({
+    context, history, setHistory, currentStep, setCurrentStep, files, modelConfig, systemPrompt, setEditingStepId
+  });
+
+  useEffect(() => {
+    if (editingStepId === null && generation.regeneratingStepId === null) {
+      bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [history, currentStep, editingStepId, generation.regeneratingStepId, generation.partialStep?.fields?.length, generation.apiError]);
+
+  const handleFieldChange = (id: string, value: any) => {
+    setContext({ ...context, [id]: value });
+  };
+
+  const handleNextClick = () => {
+    if (generation.isAiLoading) return;
+    if (!isCurrentStepValid()) {
+      setShowErrors(true);
+      return;
+    }
+    setShowErrors(false);
+    generation.handleNext();
+  };
+
+  const handleSaveHistoryStep = (stepId: number) => {
+    const updatedHistory = history.map(s => 
+        s.stepId === stepId ? { ...s, lastEdited: Date.now() } : s
+    );
+    setHistory(updatedHistory);
+  };
+
+  return {
+    ...generation,
+    editingStepId,
+    setEditingStepId,
+    showErrors,
+    bottomRef,
+    handleFieldChange,
+    handleNextClick,
+    handleSaveHistoryStep,
+    getLabelForKey,
+    getNotesField,
+    isFieldValid
+  };
+};
+</file>
+
+<file path="source/services/workflows/discovery.ts">
+import { PrdContext, DiscoveryStep, DynamicField, AVAILABLE_MODELS, CustomConnection } from "../../types";
+import { DEFAULT_PROMPTS } from "../../constants";
+import { generateStreamUnified } from "../ai/orchestrator";
+
+export const getNextDiscoveryStep = async (
+  currentContext: PrdContext, 
+  history: DiscoveryStep[],
+  files: File[] = [],
+  modelId: string = AVAILABLE_MODELS[0].id,
+  onStream?: (chunk: string) => void,
+  customConnection?: CustomConnection | null,
+  systemPromptTemplate: string = DEFAULT_PROMPTS.discovery,
+  signal?: AbortSignal,
+  lockedFields: DynamicField[] = []
+): Promise<DiscoveryStep> => {
+  const stepCount = history.length + 1;
+  const contextSummary = JSON.stringify(currentContext, null, 2);
+
+  let prompt = systemPromptTemplate
+    .replace('{{step}}', stepCount.toString())
+    .replace('{{context}}', contextSummary);
+
+  if (lockedFields.length > 0) {
+      prompt += `\n\n**CRITICAL: LOCKED FIELDS DETECTED**\nThe user is regenerating this step but explicitly wants to KEEP specific fields. You MUST include the following fields in your 'fields' array output, preserving their exact IDs, types, and labels. Do not remove or alter them. You may add new fields around them if the context requires it.\n\nLocked Fields Schema:\n${JSON.stringify(lockedFields, null, 2)}`;
+  }
+
+  try {
+      let fullText = '';
+      await generateStreamUnified({
+          modelId,
+          prompt,
+          files,
+          temperature: 0.4,
+          customConnection,
+          signal
+      }, (chunk) => {
+          fullText += chunk;
+          if (onStream) onStream(chunk);
+      });
+
+      const jsonMatch = fullText.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+      let data: Partial<DiscoveryStep> = {};
+      let aiMessage = fullText;
+
+      if (jsonMatch) {
+          try {
+              data = JSON.parse(jsonMatch[1]);
+              if (jsonMatch.index !== undefined && jsonMatch.index > 0) {
+                  aiMessage = fullText.substring(0, jsonMatch.index).trim();
+              } else {
+                   aiMessage = data.aiMessage || "Here is the next step.";
+              }
+          } catch (e) { console.error("JSON parse error in block", e); }
+      } else {
+        const start = fullText.indexOf('{');
+        const end = fullText.lastIndexOf('}');
+        if (start > -1 && end > start) {
+            try { 
+                data = JSON.parse(fullText.substring(start, end + 1)); 
+                if (start > 0) {
+                    aiMessage = fullText.substring(0, start).trim();
+                } else {
+                    aiMessage = data.aiMessage || aiMessage;
+                }
+            } catch(e) { console.error("JSON parse error fallback", e); }
+        }
+      }
+      
+      return {
+          stepId: stepCount,
+          aiMessage: aiMessage,
+          fields: data.fields || [],
+          isComplete: !!data.isComplete
+      };
+
+  } catch (error: any) {
+      if (error.message.includes('aborted')) throw error;
+      return {
+        stepId: stepCount,
+        aiMessage: "I'm having trouble connecting. Let's just use a general notes field.",
+        isComplete: false,
+        fields: [{ id: "notes", type: "textarea", label: "Notes", placeholder: "Enter details..." }]
+      };
+  }
+};
+</file>
+
+<file path="source/services/geminiService.ts">
+// Re-exporting from new modular structure to maintain compatibility during refactor
+export { fetchCustomModels } from './ai/providers/custom';
+export { getNextDiscoveryStep } from './workflows/discovery';
+export { generatePrdFromContext, generatePrdBasic, generatePrdAdvanced } from './workflows/generation';
+export { chatWithPrd } from './workflows/chat';
+</file>
+
+<file path="source/store/useAppStore.ts">
+import { create } from 'zustand';
+import { persist, devtools } from 'zustand/middleware';
+import { 
+  AppState, InputMode, Theme, ModelConfig, CustomConnection, SystemPrompts,
+  PrdFormData, AdvancedPrdFormData, PrdContext, DiscoveryStep, 
+  AVAILABLE_MODELS, INITIAL_FORM_DATA, INITIAL_ADVANCED_DATA, INITIAL_CONTEXT, INITIAL_REVERSE_CONTEXT 
+} from '../types';
+import { DEFAULT_PROMPTS, DEFAULT_INITIAL_STEP } from '../constants';
+
+interface AppStoreState {
+  // Global
+  theme: Theme;
+  appState: AppState;
+  activeInputMode: InputMode;
+  sessionId: number;
+  
+  // Model Config
+  selectedModelId: string;
+  customConnection: CustomConnection;
+  showConnectionModal: boolean;
+  showSettingsModal: boolean;
+  systemPrompts: SystemPrompts;
+
+  // Data State
+  basicFormData: PrdFormData;
+  advancedFormData: AdvancedPrdFormData;
+  dynamicContext: PrdContext;
+  dynamicHistory: DiscoveryStep[];
+  dynamicCurrentStep: DiscoveryStep;
+  
+  mastraContext: PrdContext;
+  mastraHistory: DiscoveryStep[];
+  mastraCurrentStep: DiscoveryStep;
+  
+  reverseContext: PrdContext;
+  
+  // Output State
+  generatedContent: string;
+  errorMsg: string | null;
+  
+  // Files (Not persisted in local storage due to size/security)
+  files: File[]; 
+
+  // Actions
+  setTheme: (theme: Theme) => void;
+  setAppState: (state: AppState) => void;
+  setActiveInputMode: (mode: InputMode) => void;
+  setSelectedModelId: (id: string) => void;
+  setCustomConnection: (conn: CustomConnection) => void;
+  setSystemPrompts: (prompts: SystemPrompts) => void;
+  
+  toggleConnectionModal: (show: boolean) => void;
+  toggleSettingsModal: (show: boolean) => void;
+  
+  updateBasicFormData: (data: Partial<PrdFormData> | ((prev: PrdFormData) => PrdFormData)) => void;
+  updateAdvancedFormData: (data: Partial<AdvancedPrdFormData> | ((prev: AdvancedPrdFormData) => AdvancedPrdFormData)) => void;
+  
+  updateDynamicContext: (ctx: PrdContext) => void;
+  setDynamicHistory: (history: DiscoveryStep[]) => void;
+  setDynamicCurrentStep: (step: DiscoveryStep) => void;
+  
+  updateMastraContext: (ctx: PrdContext) => void;
+  setMastraHistory: (history: DiscoveryStep[]) => void;
+  setMastraCurrentStep: (step: DiscoveryStep) => void;
+  
+  updateReverseContext: (ctx: PrdContext) => void;
+  
+  setGeneratedContent: (content: string | ((prev: string) => string)) => void;
+  setErrorMsg: (msg: string | null) => void;
+  setFiles: (files: File[]) => void;
+  
+  resetSession: () => void;
+}
+
+export const useAppStore = create<AppStoreState>()(
+  devtools(
+    persist(
+      (set, get) => ({
+        theme: 'system',
+        appState: AppState.MODE_SELECTION,
+        activeInputMode: 'DYNAMIC',
+        sessionId: Date.now(),
+        
+        selectedModelId: AVAILABLE_MODELS[0].id,
+        customConnection: { endpoint: 'http://localhost:4111/v1', apiKey: '', selectedModelId: '' },
+        showConnectionModal: false,
+        showSettingsModal: false,
+        systemPrompts: DEFAULT_PROMPTS,
+
+        basicFormData: INITIAL_FORM_DATA,
+        advancedFormData: INITIAL_ADVANCED_DATA,
+        dynamicContext: INITIAL_CONTEXT,
+        dynamicHistory: [],
+        dynamicCurrentStep: DEFAULT_INITIAL_STEP,
+        
+        mastraContext: INITIAL_CONTEXT,
+        mastraHistory: [],
+        mastraCurrentStep: DEFAULT_INITIAL_STEP,
+        
+        reverseContext: INITIAL_REVERSE_CONTEXT,
+        
+        generatedContent: '',
+        errorMsg: null,
+        files: [],
+
+        setTheme: (theme) => set({ theme }),
+        setAppState: (state) => set({ appState: state }),
+        setActiveInputMode: (mode) => set({ activeInputMode: mode }),
+        setSelectedModelId: (id) => set({ selectedModelId: id }),
+        setCustomConnection: (conn) => set({ customConnection: conn }),
+        setSystemPrompts: (prompts) => set({ systemPrompts: prompts }),
+        
+        toggleConnectionModal: (show) => set({ showConnectionModal: show }),
+        toggleSettingsModal: (show) => set({ showSettingsModal: show }),
+        
+        updateBasicFormData: (updater) => set((state) => ({
+            basicFormData: typeof updater === 'function' ? updater(state.basicFormData) : { ...state.basicFormData, ...updater }
+        })),
+        updateAdvancedFormData: (updater) => set((state) => ({
+            advancedFormData: typeof updater === 'function' ? updater(state.advancedFormData) : { ...state.advancedFormData, ...updater }
+        })),
+        
+        updateDynamicContext: (ctx) => set({ dynamicContext: ctx }),
+        setDynamicHistory: (history) => set({ dynamicHistory: history }),
+        setDynamicCurrentStep: (step) => set({ dynamicCurrentStep: step }),
+        
+        updateMastraContext: (ctx) => set({ mastraContext: ctx }),
+        setMastraHistory: (history) => set({ mastraHistory: history }),
+        setMastraCurrentStep: (step) => set({ mastraCurrentStep: step }),
+        
+        updateReverseContext: (ctx) => set({ reverseContext: ctx }),
+        
+        setGeneratedContent: (updater) => set((state) => ({
+            generatedContent: typeof updater === 'function' ? updater(state.generatedContent) : updater
+        })),
+        setErrorMsg: (msg) => set({ errorMsg: msg }),
+        setFiles: (files) => set({ files }),
+        
+        resetSession: () => set({
+            basicFormData: INITIAL_FORM_DATA,
+            advancedFormData: INITIAL_ADVANCED_DATA,
+            dynamicContext: INITIAL_CONTEXT,
+            dynamicHistory: [],
+            dynamicCurrentStep: DEFAULT_INITIAL_STEP,
+            mastraContext: INITIAL_CONTEXT,
+            mastraHistory: [],
+            mastraCurrentStep: DEFAULT_INITIAL_STEP,
+            reverseContext: INITIAL_REVERSE_CONTEXT,
+            generatedContent: '',
+            files: [],
+            sessionId: Date.now(),
+            appState: AppState.MODE_SELECTION
+        })
+      }),
+      {
+        name: 'prd-genius-store',
+        partialize: (state) => ({
+            // Don't persist large files or temporary UI states if preferred
+            theme: state.theme,
+            customConnection: state.customConnection,
+            systemPrompts: state.systemPrompts,
+            selectedModelId: state.selectedModelId
+        })
+      }
+    )
+  )
+);
+</file>
+
+<file path="source/types.ts">
+export enum AppState {
+  MODE_SELECTION = 'MODE_SELECTION', // Can be used as Welcome/Start screen
+  DYNAMIC_INTAKE = 'DYNAMIC_INTAKE', // New interactive mode
+  INPUT_BASIC = 'INPUT_BASIC',
+  INPUT_ADVANCED = 'INPUT_ADVANCED',
+  INPUT_REVERSE_BASIC = 'INPUT_REVERSE_BASIC', // New: Quick Audit
+  INPUT_REVERSE_ADVANCED = 'INPUT_REVERSE_ADVANCED', // New: Deep Analysis Intake
+  LOADING = 'LOADING',
+  REFINEMENT = 'REFINEMENT',
+  ERROR = 'ERROR'
+}
+
+export type InputMode = 'BASIC' | 'ADVANCED' | 'DYNAMIC' | 'MASTRA' | 'REVERSE_BASIC' | 'REVERSE_ADVANCED';
+
+export type Theme = 'light' | 'dark' | 'system';
+
+// Flexible data structure for the dynamic flow
+export type PrdContext = Record<string, any>;
+
+export type SelectOption = string | { label: string; options: string[] };
+
+// Definition for an AI-generated form field
+export interface DynamicField {
+  id: string; // The key to store in PrdContext
+  type: 'text' | 'textarea' | 'select' | 'multiselect';
+  label: string;
+  placeholder?: string;
+  options?: SelectOption[]; // For select/multiselect
+  description?: string; // Helper text
+  dependsOn?: { fieldId: string; value: any }; // Conditional visibility
+}
+
+// The structure returned by the AI for each step
+export interface DiscoveryStep {
+  stepId: number;
+  aiMessage: string; // Conversational text from the agent
+  fields: DynamicField[];
+  isComplete: boolean; // If true, AI thinks we have enough info
+  lastEdited?: number; // Timestamp of last edit
+}
+
+export interface ChatMessage {
+  id: string;
+  role: 'user' | 'ai';
+  text: string;
+  // Versioning support
+  versions?: string[]; // Array of all generated contents for this turn
+  currentVersionIndex?: number; // Index of the currently active version
+  isUpdate?: boolean; // True if this message resulted in a document update
+  timestamp: number;
+}
+
+// --- SYSTEM PROMPTS ---
+export interface SystemPrompts {
+  discovery: string;
+  generation: string;
+  chat: string;
+}
+
+// --- MODEL ARCHITECTURE ---
+export interface ModelCapabilities {
+  image: boolean;    // Can see images (png, jpg, webp)
+  document: boolean; // Can read text files (pdf, md, txt, code)
+}
+
+export type ModelProvider = 'GEMINI' | 'CUSTOM';
+
+export interface ModelConfig {
+  id: string;
+  name: string;
+  description: string;
+  capabilities: ModelCapabilities;
+  maxOutputTokens: number;
+  maxInputTokens: number; // For context window calc
+  provider: ModelProvider;
+}
+
+export interface CustomConnection {
+  endpoint: string;
+  apiKey: string;
+  selectedModelId: string;
+}
+
+export const AVAILABLE_MODELS: ModelConfig[] = [
+  {
+    id: "gemini-3-flash-preview",
+    name: "Gemini 3 Flash",
+    description: "Next-gen fast model. Best for quick drafts and iteration.",
+    capabilities: { image: true, document: true },
+    maxOutputTokens: 8192,
+    maxInputTokens: 1048576, // 1M context
+    provider: 'GEMINI'
+  },
+  {
+    id: "gemini-3-pro-preview",
+    name: "Gemini 3 Pro",
+    description: "Reasoning expert. Best for detailed, complex PRDs.",
+    capabilities: { image: true, document: true },
+    maxOutputTokens: 8192,
+    maxInputTokens: 1048576, // 1M context
+    provider: 'GEMINI'
+  },
+  {
+    id: "custom-mastra",
+    name: "Custom / Mastra",
+    description: "Connect to your own Mastra server or OpenAI-compatible provider.",
+    capabilities: { image: false, document: true }, // Assume text-only unless verified
+    maxOutputTokens: 4096,
+    maxInputTokens: 128000, // Conservative default for local/custom models
+    provider: 'CUSTOM'
+  }
+];
+
+// Keep legacy types for backward compatibility if needed, 
+// or map dynamic data to these before generation.
+export interface PrdFormData {
+  projectName: string;
+  problemStatement: string;
+  targetAudience: string;
+  keyFeatures: string;
+  successMetrics: string;
+  technicalConstraints: string;
+}
+
+export interface AdvancedPrdFormData {
+  projectName: string;
+  problemStatement: string;
+  businessGoals: string;
+  targetAudience: string;
+  personas: string;
+  userFlows: string;
+  problemType: string;
+  platformRequirements: string;
+  keyFeatures: string;
+  edgeCases: string;
+  scalabilityRequirements: string;
+  securityRequirements: string;
+  testingStrategy: string;
+}
+
+// Initial state with MOCK DATA for testing
+export const INITIAL_CONTEXT: PrdContext = {
+  projectName: "Mock Dynamic: Smart Home Hub",
+  productType: "Hardware Products",
+  problemStatement: "Smart home devices from different brands don't talk to each other reliably.",
+  "productType_notes": { "Hardware Products": "Focus on Matter protocol support." },
+  custom_notes_1: "We need to ensure backward compatibility with Zigbee."
+};
+
+export const INITIAL_REVERSE_CONTEXT: PrdContext = {
+  analysisGoals: "Analyze this legacy PHP codebase. We need to document the hidden business rules in the checkout process so we can rewrite it in Node.js."
+};
+
+export const INITIAL_FORM_DATA: PrdFormData = {
+  projectName: 'Mock Project: Solar System Tracker',
+  problemStatement: 'Amateur astronomers struggle to visualize planetary alignment in real-time on mobile devices.',
+  targetAudience: 'Hobbyist astronomers and students.',
+  keyFeatures: '- Real-time 3D orbit visualization\n- AR overlay for night sky\n- Notification for celestial events',
+  successMetrics: '10,000 downloads in first month. 4.5 star rating.',
+  technicalConstraints: 'Must run at 60fps on mid-range Android phones. Offline first.'
+};
+
+export const INITIAL_ADVANCED_DATA: AdvancedPrdFormData = {
+  projectName: 'Mock Enterprise: Supply Chain AI',
+  problemStatement: 'Current logistics tracking is manual and reactive, leading to 15% spoilage of perishable goods.',
+  businessGoals: 'Reduce spoilage by 50%. Real-time visibility for stakeholders.',
+  targetAudience: 'Logistics Managers, Warehouse Operators, Drivers.',
+  personas: 'Sarah (Manager): Needs high-level dashboard.\nMike (Driver): Needs simple mobile input.',
+  userFlows: '1. Driver scans package -> 2. AI predicts delay -> 3. Manager gets alert -> 4. Route rerouted.',
+  problemType: 'Agentic AI Tool',
+  platformRequirements: 'Web Dashboard (React), Mobile App (Flutter), Cloud Backend (AWS).',
+  keyFeatures: '- Computer Vision scanning\n- Predictive route optimization\n- IoT sensor integration',
+  edgeCases: 'No internet connectivity in remote areas. Sensor failure.',
+  scalabilityRequirements: 'Support 50,000 concurrent shipments.',
+  securityRequirements: 'End-to-end encryption. SOC2 compliance.',
+  testingStrategy: 'Integration-Heavy'
+};
+</file>
+
+<file path="specs/dynamic-intake-engine/spec.md">
+# Specification: Dynamic Intake Engine
+
+## ADDED Requirements
+
+### Requirement: Dynamic Question Generation
+
+The system MUST generate the next interview step based on the current context using an AI model. This enables the "on-the-fly" adaptation of the interview process.
+
+#### Scenario: Generate Next Step
+
+WHEN the user submits an answer to the current step
+THEN the system sends the accumulated `PrdContext` to the AI service
+AND the system receives a JSON schema defining the next question and input fields
+AND the system renders the new fields dynamically
+
+### Requirement: Context Management
+
+The system MUST maintain a cumulative context of all user answers throughout the session (e.g., `PrdContext`). This ensures the AI "remembers" previous answers to ask relevant follow-up questions.
+
+#### Scenario: Update Context
+
+WHEN the user answers a question
+THEN the system updates the session context with the new key-value pair
+AND the context is persisted for the next generation step
+
+### Requirement: Dynamic UI Rendering
+
+The system MUST render UI inputs based on the AI-generated JSON schema. The schema defines the field type, label, and potential options.
+
+#### Scenario: Render Text Input
+
+WHEN the schema specifies a field of type "text" or "textarea"
+THEN the system renders a corresponding text input component
+
+#### Scenario: Render Selection Input
+
+WHEN the schema specifies a field of type "select" or "multiselect"
+THEN the system renders a dropdown or checkbox component with the provided options
+
+### Requirement: Input Validation
+
+The system MUST validate user inputs against the generated schema before proceeding to the next step or generation phase.
+
+#### Scenario: Validate Required Fields
+
+WHEN the user tries to proceed without filling a required field defined in the schema
+THEN the system prevents progression
+AND shows an error message to the user
+</file>
+
+<file path="specs/refinement-studio/spec.md">
+# Specification: Refinement Studio
+
+## ADDED Requirements
+
+### Requirement: Split-Screen Interface
+
+The system MUST provide a comprehensive workspace showing the artifact preview/editor and a chat interface simultaneously.
+
+#### Scenario: Dual View Visualization
+
+WHEN the refinement studio is active
+THEN the left pane displays the rendered markdown artifact (or raw editor)
+AND the right pane displays the context-aware chat interface
+
+### Requirement: AI-Driven Refinement
+
+The system MUST allow users to modify the artifact via natural language chat commands. The AI must have access to the current document state to make intelligent edits.
+
+#### Scenario: Refine Section via Chat
+
+WHEN the user requests a change to a specific section via the chat interface
+THEN the system sends the request along with the current document content to the AI
+AND the AI generates a modified version of the document
+AND the system updates the artifact content with the new version
+
+### Requirement: Direct Editing and Preview
+
+The system MUST allow users to toggle between viewing the rendered markdown and directly editing the raw source code.
+
+#### Scenario: Toggle Edit Mode
+
+WHEN the user toggles to "Edit Mode"
+THEN the preview pane switches to a markdown editor containing the raw text
+AND changes made in the editor are reflected in the preview when switched back
+
+#### Scenario: Toggle Preview Mode
+
+WHEN the user toggles to "Preview Mode"
+THEN the editor pane switches to a rendered HTML/Markdown view of the content
+</file>
+
+<file path=".openspec.yaml">
+schema: spec-driven
+created: 2026-01-28
+</file>
+
+<file path="design.md">
+# Design: Extract Dynamic Intake
+
+## Context
+
+Design-OS requires an intelligent, conversational interface to gather user requirements for designs. The "Dynamic Intake" patterns from the `PRD-Genius` project provide a proven solution using client-side AI generation to drive a dynamic form wizard. This design outlines the strategy for extracting and integrating that logic.
+
+## Goals / Non-Goals
+
+**Goals:**
+
+- Extract the `Dynamic Intake` engine (hooks, service, UI) from `PRD-Genius`.
+- Integrate client-side Gemini AI interaction using `@google/genai`.
+- Implement the `Refinement Studio` for real-time artifact collaboration.
+- Establish a modular directory structure (`src/features/dynamic-intake`) for these new capabilities.
+- **Transform Design-OS from a static viewer to a reactive editor** with a unified data store.
+
+**Non-Goals:**
+
+- Backend API proxy implementation (client-side only for this phase).
+- Support for LLMs other than Gemini (matching source capabilities).
+
+## Decisions
+
+### 1. Client-Side AI Architecture
+
+We will maintain the client-side architecture where the browser directly calls the Gemini API.
+
+- **Rationale:** Lowers barrier to entry (no backend required) and simplifies the 1:1 port from the source codebase.
+- **Alternatives:** Proxy server. Rejected to reduce extraction complexity.
+
+### 2. State Management with Zustand
+
+We will leverage `zustand` for managing the interview state (`PrdContext`, history).
+
+- **Rationale:** The source codebase relies heavily on `zustand`. Keeping this minimizes refactoring risk during the port.
+- **Alternatives:** React Context. Rejected to avoid rewriting complex state logic.
+
+### 3. Feature-Based Directory Structure
+
+We will group all extracted code into `src/features/dynamic-intake` and `src/features/refinement`.
+
+- **Rationale:** Keeps the extracted code isolated, making it easier to manage and potentially replace or update later without polluting the global `src/components` namespace.
+
+### 4. Unified Data Layer (Viewer -> Editor)
+
+We must transition the application from a read-only static viewer to a reactive client-side editor.
+
+- **Current Architecture:** Components read directly from `src/lib/*-loader.ts` which loads static Markdown/ZIP files.
+- **New Architecture:**
+  1.  **Store:** A global Zustand store will serve as the single source of truth.
+  2.  **Hydration:** On load, the store hydrates from the static loaders (if data exists).
+  3.  **Editing:** User interactions update the Store in memory.
+  4.  **Export:** A "client-side export" feature generates a `product-plan.zip` from the Store state using `jszip`.
+
+## Risks / Trade-offs
+
+- **[Risk] Dependency Drift:** Source code might use libraries not present in `Design-OS` or different versions.
+  - **Mitigation:** We will audit `package.json` during the implementation task to align versions of `zod`, `tailwind-merge`, and `react-markdown`.
+- **[Risk] API Key Management:** Client-side calls require managing the API Key.
+  - **Mitigation:** We will implement a local storage-backed "Settings" input for the user to provide their Gemini API key, ensuring it isn't hardcoded.
+
+## Migration Plan
+
+1.  **Dependencies:** Install `@google/genai`, `zod`, `react-markdown`.
+2.  **Scaffolding:** Create feature directories.
+3.  **Core Logic:** Port Types -> Service -> Store -> Hooks.
+4.  **UI Implementation:** Port Components -> Integrate with Logic.
+5.  **Integration:** Add routes to `App.tsx` to expose the new views.
+</file>
+
+<file path="proposal.md">
+## Why
+
+The current `Design-OS` application lacks the sophisticated, agentic interview capabilities found in `PRD-Genius`. To enable a conversational, "on-the-fly" design process where the system dynamically asks relevant questions based on previous answers, we need to extract and integrate the Dynamic Intake engine from `PRD-Genius`. This extraction will allow `Design-OS` to interview users about their design needs, generating specs and designs more intelligently than static forms or simple prompts.
+
+## What Changes
+
+- Extract the core Dynamic Intake logic hooks (`useDynamicIntakeLogic`, `useDynamicGeneration`, `useDynamicValidation`) from `PRD-Genius`.
+- Port the `PrdContext`, `DiscoveryStep`, and `DynamicField` type definitions to `Design-OS`.
+- Extract the `GeminiService` and the prompt engineering logic (`DEFAULT_PROMPTS.discovery`) that generates the JSON schema for dynamic questions.
+- Port the UI components responsible for rendering dynamic fields: `DynamicIntake`, `ActiveStep`, `DynamicField`, and `HistoryList`.
+- Extract the `RefinementView` component and its logic hooks (`useRefinementLogic`) to provide a split-screen editor/chat interface for finalizing artifacts.
+- Integrate these components into the `New Agentic Version` of `Design-OS` as a reusable module.
+
+## Capabilities
+
+### New Capabilities
+
+- `dynamic-intake-engine`: A reusable system for conducting AI-driven interviews. It takes a context and a system prompt, and returns a dynamic UI flow that adapts to user answers in real-time.
+- `refinement-studio`: A split-screen interface for viewing, editing, and chatting with markdown artifacts (Specs, Designs) in real-time.
+
+### Modified Capabilities
+
+- None. This is a net-new addition to `Design-OS`.
+
+## Impact
+
+- **New Dependencies:** Will require adding `@google/genai`, `react-markdown`, `remark-gfm`, and `zod` to `Design-OS/package.json`.
+- **Store:** Will require updates to the `Design-OS` store (likely `zustand` based) to hold the interview context and history.
+- **UI:** Introduces new complex UI patterns (chat-like history combined with form inputs).
+- **Codebase:** Adds a significant new module `PRD-Genius-Extraction` (or similar) within `src/` to house the ported logic.
+- **Architecture:** Fundamental shift from "Static Viewer" to "Client-Side Editor" requiring a unified data store and hydration strategy.
+
+## Test Strategy
+
+- **Unit Tests:** Verify `useDynamicIntakeLogic` correctly updates context and handles API responses.
+- **Component Tests:** Ensure `DynamicField` renders correct inputs based on JSON schema types (text, select, multiselect).
+- **Integration Tests:** meaningful end-to-end flow of an interview session using mocked Gemini responses to verify the "Ask -> Answer -> Next Question" loop.
+
+## ADDED/MODIFIED/REMOVED
+
+### Added
+
+- `src/features/dynamic-intake/` (New module structure)
+- `src/features/dynamic-intake/hooks/useDynamicIntakeLogic.ts`
+- `src/features/dynamic-intake/components/DynamicIntake.tsx`
+- `src/features/dynamic-intake/services/geminiService.ts`
+- `src/features/refinement/`
+- `src/features/refinement/components/RefinementView.tsx`
+
+### Modified 
+
+- `package.json` (Adding dependencies)
+- `src/store/index.ts` (Adding dynamic context slice)
+</file>
+
+<file path="tasks.md">
+# Tasks: Extract Dynamic Intake
+
+## 1. Setup & Dependencies
+
+- [ ] 1.1 Install required dependencies (`@google/genai`, `zod`, `react-markdown`, `remark-gfm`, `clsx`, `tailwind-merge`, `file-saver`)
+- [ ] 1.2 Create directory structure for feature modules (`src/features/dynamic-intake`, `src/features/refinement`)
+
+## 2. Core Logic & Types
+
+- [ ] 2.1 Port type definitions to `src/features/dynamic-intake/types.ts`
+- [ ] 2.2 Implement `GeminiService` in `src/features/dynamic-intake/services/geminiService.ts`
+- [ ] 2.3 **Infrastructure:** Initialize `src/store/index.ts` (Root Store) with `productSlice` (data) and `uiSlice` (persisted state).
+- [ ] 2.4 **Refactor:** Update `ProductPage.tsx` and loaders to hydrate the Store, rather than components reading loaders directly.
+- [ ] 2.5 Port discovery workflow logic to `src/features/dynamic-intake/workflows/discovery.ts`
+
+## 3. Dynamic Intake Engine
+
+- [ ] 3.1 Implement `useDynamicValidation` hook
+- [ ] 3.2 Implement `useDynamicIntakeLogic` hook
+- [ ] 3.3 Implement `ActiveStep` component (Schema Renderer)
+- [ ] 3.4 Implement `DynamicIntake` container component
+
+## 4. Refinement Studio
+
+- [ ] 4.1 Implement `useRefinementLogic` hook
+- [ ] 4.2 Implement `ChatInterface` component
+- [ ] 4.3 Implement `DocPreview` component
+- [ ] 4.4 Implement `RefinementView` container
+
+## 5. Integration
+
+- [ ] 5.1 Add new routes to `src/lib/router.tsx`
+- [ ] 5.2 Update `src/components/EmptyState.tsx` to launch Dynamic Intake instead of showing CLI instructions.
+- [ ] 5.3 Implement "Download Project" feature in `RefinementView` (using `jszip` to bundle artifacts).
+- [ ] 5.4 Validate the full flow (Interview -> Generation -> Refinement -> Export)
+</file>
+
+</files>
