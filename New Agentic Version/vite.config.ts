@@ -15,6 +15,12 @@ export default defineConfig(({ mode }) => {
             secure: true,
             rewrite: (path) => path.replace(/^\/ollama-cloud/, ''),
           },
+          '/lmstudio-proxy': {
+              target: 'http://localhost:1234',
+              changeOrigin: true,
+              secure: false,
+              rewrite: (path) => path.replace(/^\/lmstudio-proxy/, ''),
+          }
         },
       },
       plugins: [react()],
