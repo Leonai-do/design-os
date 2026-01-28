@@ -44,7 +44,7 @@ export function SectionsPage() {
                             <span className="flex h-6 w-6 items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-800 text-xs font-mono font-medium text-zinc-600 dark:text-zinc-400">
                                 {section.order}
                             </span>
-                            <h3 className="font-semibold text-lg">{section.title}</h3>
+                            <h3 className="font-semibold text-lg text-zinc-900 dark:text-zinc-50">{section.title}</h3>
                         </div>
                         <p className="text-zinc-500 dark:text-zinc-400 text-sm pl-9">{section.description}</p>
                       </div>

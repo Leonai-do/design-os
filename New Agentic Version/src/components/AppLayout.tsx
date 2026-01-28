@@ -172,13 +172,13 @@ export function AppLayout({
              )}>
                {mode === 'dashboard' ? (
                  <div className="max-w-5xl mx-auto px-6 py-10 min-h-full">
-                    {title && <h1 className="text-3xl font-bold mb-8 tracking-tight">{title}</h1>}
+                    {title && <h1 className="text-3xl font-bold mb-8 tracking-tight text-zinc-900 dark:text-zinc-50">{title}</h1>}
                     {children}
                  </div>
                ) : mode === 'ide' ? (
                  <div className="h-full flex flex-col">
                     {title && <div className="px-6 py-4 border-b border-border flex items-center gap-2">
-                        <h1 className="text-lg font-semibold">{title}</h1>
+                        <h1 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">{title}</h1>
                     </div>}
                     <div className="flex-1 overflow-y-auto p-6">
                         {children}

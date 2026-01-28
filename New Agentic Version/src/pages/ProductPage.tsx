@@ -21,7 +21,7 @@ export function ProductPage() {
             <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${hasOverview ? 'bg-zinc-900 text-white dark:bg-white dark:text-black' : 'bg-zinc-200 text-zinc-500'}`}>
               {hasOverview ? <Check className="w-3 h-3" /> : '1'}
             </div>
-            <h2 className="text-xl font-semibold">Product Vision</h2>
+            <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50">Product Vision</h2>
           </div>
 
           {!data.overview ? (
@@ -73,7 +73,7 @@ export function ProductPage() {
              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${hasRoadmap ? 'bg-zinc-900 text-white dark:bg-white dark:text-black' : 'bg-zinc-200 text-zinc-500'}`}>
               {hasRoadmap ? <Check className="w-3 h-3" /> : '2'}
             </div>
-            <h2 className="text-xl font-semibold">Roadmap</h2>
+            <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50">Roadmap</h2>
           </div>
 
           {!data.roadmap ? (
@@ -91,7 +91,7 @@ export function ProductPage() {
                           {section.order}
                         </div>
                         <div className="flex-1">
-                          <h4 className="font-medium">{section.title}</h4>
+                          <h4 className="font-medium text-zinc-900 dark:text-zinc-50">{section.title}</h4>
                           <p className="text-sm text-zinc-500">{section.description}</p>
                         </div>
                         <ChevronRight className="w-4 h-4 text-zinc-300" />

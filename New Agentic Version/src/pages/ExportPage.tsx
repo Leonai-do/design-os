@@ -79,7 +79,7 @@ export function ExportPage() {
                     <h3 className="text-sm font-semibold uppercase tracking-wider text-zinc-500">Core Foundations</h3>
                     {checks.map((check, i) => (
                         <div key={i} className="flex items-center justify-between p-3 bg-zinc-50 dark:bg-zinc-900 rounded-lg">
-                            <span className="font-medium">{check.label}</span>
+                            <span className="font-medium text-zinc-900 dark:text-zinc-100">{check.label}</span>
                             {check.valid ? (
                                 <div className="flex items-center text-green-600 dark:text-green-400 text-sm font-medium">
                                     <Check className="w-4 h-4 mr-1.5" />
@@ -102,7 +102,7 @@ export function ExportPage() {
                         {sectionsReady.map(section => (
                             <div key={section.id} className="flex items-center justify-between p-3 bg-zinc-50 dark:bg-zinc-900 rounded-lg">
                                 <div>
-                                    <span className="font-medium block">{section.title}</span>
+                                    <span className="font-medium block text-zinc-900 dark:text-zinc-100">{section.title}</span>
                                     <span className="text-xs text-zinc-500">Phase {section.order}</span>
                                 </div>
                                 {section.isReady ? (

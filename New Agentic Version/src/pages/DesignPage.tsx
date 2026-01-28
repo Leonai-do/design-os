@@ -25,7 +25,7 @@ function ColorSwatch({ label, color }: { label: string, color: string }) {
     <div className="flex flex-col gap-2">
       <div className="h-20 w-full rounded-lg shadow-sm border border-black/5 dark:border-white/5" style={{ backgroundColor: getColor(color) }}></div>
       <div>
-        <div className="font-medium text-sm">{label}</div>
+        <div className="font-medium text-sm text-zinc-900 dark:text-zinc-100">{label}</div>
         <div className="text-xs text-zinc-500 font-mono opacity-70">{color}</div>
       </div>
     </div>
@@ -98,17 +98,17 @@ export function DesignPage() {
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                         <div>
                         <div className="text-xs text-zinc-500 uppercase tracking-wider mb-2 font-mono">Heading</div>
-                        <div className="text-4xl font-bold">{data.designSystem.typography?.heading}</div>
+                        <div className="text-4xl font-bold text-zinc-900 dark:text-zinc-50">{data.designSystem.typography?.heading}</div>
                         <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">The quick brown fox jumps over the lazy dog.</p>
                         </div>
                         <div>
                         <div className="text-xs text-zinc-500 uppercase tracking-wider mb-2 font-mono">Body</div>
-                        <div className="text-xl">{data.designSystem.typography?.body}</div>
+                        <div className="text-xl text-zinc-900 dark:text-zinc-50">{data.designSystem.typography?.body}</div>
                         <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">The quick brown fox jumps over the lazy dog.</p>
                         </div>
                         <div>
                         <div className="text-xs text-zinc-500 uppercase tracking-wider mb-2 font-mono">Mono</div>
-                        <div className="text-lg font-mono">{data.designSystem.typography?.mono}</div>
+                        <div className="text-lg font-mono text-zinc-900 dark:text-zinc-50">{data.designSystem.typography?.mono}</div>
                         <p className="mt-2 text-xs font-mono text-zinc-600 dark:text-zinc-400">console.log("Hello World");</p>
                         </div>
                     </div>

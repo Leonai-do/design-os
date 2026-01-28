@@ -75,7 +75,7 @@ export function ShellDesignPage() {
             <div className="h-4 w-px bg-zinc-200 dark:bg-zinc-800" />
             <div className="flex flex-col">
               <span className="text-xs text-zinc-500 font-medium uppercase tracking-wider">Design System</span>
-              <span className="font-semibold text-sm">Application Shell</span>
+              <span className="font-semibold text-sm text-zinc-900 dark:text-zinc-50">Application Shell</span>
             </div>
           </div>
 
