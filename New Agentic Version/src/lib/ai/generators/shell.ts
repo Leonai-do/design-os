@@ -1,7 +1,7 @@
 
 import { Type } from "@google/genai";
 import { generateStructured } from "../client";
-import { SHELL_DESIGN_PROMPT } from "../../prompts";
+import { DESIGN_SHELL_PROMPT } from "../../prompts";
 import { ProductOverview, ProductRoadmap, ShellSpec } from "../../../types";
 
 export async function generateShellSpec(
@@ -33,5 +33,5 @@ export async function generateShellSpec(
     required: ["overview", "navigationItems", "layoutPattern", "raw"]
   };
 
-  return generateStructured<ShellSpec>(context, schema, SHELL_DESIGN_PROMPT, history, images, onStream);
+  return generateStructured<ShellSpec>(context, schema, DESIGN_SHELL_PROMPT, history, images, onStream);
 }

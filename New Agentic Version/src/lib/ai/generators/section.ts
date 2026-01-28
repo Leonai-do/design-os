@@ -1,7 +1,7 @@
 
 import { Type } from "@google/genai";
 import { generateStructured } from "../client";
-import { SECTION_SPEC_PROMPT, SECTION_DATA_PROMPT, SCREEN_DESIGN_PROMPT } from "../../prompts";
+import { SECTION_SPEC_PROMPT, SECTION_DATA_PROMPT, DESIGN_SCREEN_PROMPT } from "../../prompts";
 import { ProductRoadmap, SectionSpec, DataModel, DesignSystem, ScreenDesign } from "../../../types";
 
 // 5. Section Spec
@@ -80,5 +80,5 @@ export async function generateScreenDesign(
     required: ["name", "componentName", "code"]
   };
 
-  return generateStructured<ScreenDesign>(context, schema, SCREEN_DESIGN_PROMPT, history, images, onStream);
+  return generateStructured<ScreenDesign>(context, schema, DESIGN_SCREEN_PROMPT, history, images, onStream);
 }

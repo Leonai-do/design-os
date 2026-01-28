@@ -27,24 +27,38 @@ export function ChatInterface() {
 
   // Resize State
   const [size, setSize] = React.useState({ width: 600, height: 800 });
-  const isResizingRef = React.useRef(false);
+  const [isResizing, setIsResizing] = React.useState(false);
+  const cardRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
-      if (!isResizingRef.current) return;
+      if (!isResizing) return;
       
       // Calculate new size based on mouse position relative to right-bottom anchor
       const newWidth = window.innerWidth - e.clientX - 16; // 16px right margin
       const newHeight = window.innerHeight - e.clientY - 16; // 16px bottom margin
       
-      setSize({
-        width: Math.max(350, Math.min(newWidth, window.innerWidth - 40)),
-        height: Math.max(400, Math.min(newHeight, window.innerHeight - 40))
-      });
+      // Apply constraints
+      const constrainedWidth = Math.max(350, Math.min(newWidth, window.innerWidth - 40));
+      const constrainedHeight = Math.max(400, Math.min(newHeight, window.innerHeight - 40));
+      
+      // Direct DOM manipulation for performance (bypass React render cycle)
+      if (cardRef.current) {
+        cardRef.current.style.width = `${constrainedWidth}px`;
+        cardRef.current.style.height = `${constrainedHeight}px`;
+      }
     };
 
     const handleMouseUp = () => {
-      isResizingRef.current = false;
+      if (isResizing) {
+        // Sync final dimensions to React state for persistence
+        if (cardRef.current) {
+          const finalWidth = parseInt(cardRef.current.style.width, 10) || size.width;
+          const finalHeight = parseInt(cardRef.current.style.height, 10) || size.height;
+          setSize({ width: finalWidth, height: finalHeight });
+        }
+        setIsResizing(false);
+      }
       document.body.style.cursor = 'default';
       document.body.style.userSelect = 'auto'; 
     };
@@ -57,7 +71,7 @@ export function ChatInterface() {
         window.removeEventListener('mousemove', handleMouseMove);
         window.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [isOpen]);
+  }, [isOpen, isResizing, size]);
 
   if (!isOpen) {
     return (
@@ -72,15 +86,19 @@ export function ChatInterface() {
 
   const startResizing = (e: React.MouseEvent) => {
       e.preventDefault();
-      isResizingRef.current = true;
+      setIsResizing(true);
       document.body.style.cursor = 'nw-resize';
       document.body.style.userSelect = 'none';
   };
 
+  // Conditionally apply transitions only when not resizing
+  const transitionClasses = (!isResizing && !isMinimized) ? 'transition-all duration-300' : '';
+
   return (
     <Card 
+      ref={cardRef}
       style={!isMinimized ? { width: size.width, height: size.height } : undefined}
-      className={`fixed right-4 z-50 transition-all duration-300 flex flex-col shadow-2xl border-zinc-200 dark:border-zinc-800 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-sm
+      className={`fixed right-4 z-50 ${transitionClasses} flex flex-col shadow-2xl border-zinc-200 dark:border-zinc-800 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-sm
       ${isMinimized 
         ? 'bottom-4 w-72 h-14' 
         : 'bottom-4 max-h-[90vh] max-w-[90vw]'
