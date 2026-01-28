@@ -1,7 +1,7 @@
 # Changelog
 
 Get notified of major releases by subscribing here:
-https://buildermethods.com/design-os
+https://github.com/Leonai-do/design-os
 
 ## [0.1.2] - 2025-12-19
 
