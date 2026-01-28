@@ -71,7 +71,7 @@ export function CommandMenu({ isOpen, filterText, onSelect, onClose }: CommandMe
   if (!isOpen || filteredCommands.length === 0) return null;
 
   return (
-    <div className="absolute bottom-full left-0 w-full mb-3 px-3 z-50">
+    <div className="absolute bottom-full left-3 mb-2 z-50 w-[380px]">
         <Card className="overflow-hidden shadow-2xl border-zinc-200 dark:border-zinc-800 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md animate-in fade-in slide-in-from-bottom-2 duration-200 ring-1 ring-black/5">
         <div className="p-1.5 flex flex-col gap-0.5">
             <div className="px-2 py-1.5 text-xs font-semibold text-zinc-400 uppercase tracking-wider flex items-center gap-1">

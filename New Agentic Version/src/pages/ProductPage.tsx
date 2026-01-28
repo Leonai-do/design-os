@@ -41,23 +41,23 @@ export function ProductPage() {
                     <div className="bg-zinc-50 dark:bg-zinc-900 p-4 rounded-lg">
                       <h4 className="font-medium mb-2 text-sm uppercase text-zinc-500">Key Problems</h4>
                       <ul className="space-y-2 text-sm">
-                        {data.overview.problems.map((p, i) => (
+                        {data.overview.problems?.map((p, i) => (
                           <li key={i} className="flex gap-2">
                             <ArrowRight className="w-4 h-4 mt-0.5 shrink-0 text-red-400" />
                             <span>{p.title}</span>
                           </li>
-                        ))}
+                        )) || <li className="text-zinc-400 italic">No problems listed</li>}
                       </ul>
                     </div>
                     <div className="bg-zinc-50 dark:bg-zinc-900 p-4 rounded-lg">
                       <h4 className="font-medium mb-2 text-sm uppercase text-zinc-500">Features</h4>
                       <ul className="space-y-2 text-sm">
-                        {data.overview.features.map((f, i) => (
+                        {data.overview.features?.map((f, i) => (
                           <li key={i} className="flex gap-2">
                             <Check className="w-4 h-4 mt-0.5 shrink-0 text-green-500" />
                             <span>{f}</span>
                           </li>
-                        ))}
+                        )) || <li className="text-zinc-400 italic">No features listed</li>}
                       </ul>
                     </div>
                   </div>

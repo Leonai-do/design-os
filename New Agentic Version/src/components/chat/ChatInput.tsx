@@ -14,6 +14,8 @@ interface ChatInputProps {
   inputRef: React.RefObject<HTMLInputElement | null>;
   onCommandSelect: (command: string) => void;
   onInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  selectedCommand?: string | null;
+  setSelectedCommand?: (cmd: string | null) => void;
 }
 
 export function ChatInput({
@@ -25,7 +27,9 @@ export function ChatInput({
   activeContext,
   inputRef,
   onCommandSelect,
-  onInputChange
+  onInputChange,
+  selectedCommand,
+  setSelectedCommand
 }: ChatInputProps) {
   const [attachments, setAttachments] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -59,7 +63,7 @@ export function ChatInput({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (input.trim() || attachments.length > 0) {
+    if ((input.trim() || selectedCommand) || attachments.length > 0) {
         onSend(attachments);
         setAttachments([]);
     }
@@ -104,46 +108,55 @@ export function ChatInput({
             onChange={handleFileChange}
         />
         
-        <div className="flex flex-col gap-1">
-            <Button 
+        <Button 
             type="button" 
             variant="ghost" 
             size="icon" 
-            className={`shrink-0 transition-colors ${activeContext ? 'text-green-600 bg-green-50 dark:bg-green-900/20' : 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100'}`}
-            onClick={handleSlashClick}
-            title={activeContext ? `Active Context: ${activeContext}` : 'Commands'}
-            >
-            <Slash className="h-5 w-5" />
-            </Button>
-            <Button 
-            type="button" 
-            variant="ghost" 
-            size="icon" 
-            className="text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
+            className="text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 shrink-0 mb-1"
             onClick={handleFileClick}
             title="Attach image"
-            >
+        >
             <Paperclip className="h-5 w-5" />
-            </Button>
-        </div>
+        </Button>
 
-        <div className="flex-1 bg-zinc-50 dark:bg-zinc-900 border border-transparent focus-within:border-zinc-200 dark:focus-within:border-zinc-800 rounded-md transition-all">
+        <div className="flex-1 bg-zinc-50 dark:bg-zinc-900 border border-transparent focus-within:border-zinc-200 dark:focus-within:border-zinc-800 rounded-md transition-all flex items-center gap-1 p-1">
+            <Button 
+                type="button" 
+                variant="ghost" 
+                size="icon" 
+                className={`h-8 w-8 shrink-0 transition-colors ${activeContext ? 'text-green-600 bg-green-50 dark:bg-green-900/20' : 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100'}`}
+                onClick={handleSlashClick}
+                title={activeContext ? `Active Context: ${activeContext}` : 'Commands'}
+            >
+                <Slash className="h-4 w-4" />
+            </Button>
+            
+            {selectedCommand && (
+                <div className="bg-zinc-200 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-xs px-2 py-1 rounded-[4px] flex items-center gap-1 font-mono font-medium shrink-0 select-none animate-in fade-in zoom-in-95 duration-200">
+                    {selectedCommand}
+                </div>
+            )}
+            
             <input
-            ref={inputRef}
-            className="w-full bg-transparent border-none px-3 py-2 text-sm focus:outline-none min-h-[40px]"
-            placeholder={activeContext ? `Discussing ${activeContext}...` : "Type a message or attach an image..."}
-            value={input}
-            onChange={onInputChange}
-            onKeyDown={(e) => {
-                if (showCommands && (e.key === 'Enter' || e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
-                    if (e.key === 'Enter') e.preventDefault();
-                }
-            }}
-            autoFocus
+                ref={inputRef}
+                className="flex-1 bg-transparent border-none px-2 py-2 text-sm focus:outline-none min-h-[40px]"
+                placeholder={activeContext ? `Discussing ${activeContext}...` : (selectedCommand ? "Type arguments..." : "Type a message or / for commands...")}
+                value={input}
+                onChange={onInputChange}
+                onKeyDown={(e) => {
+                    if (selectedCommand && !input && e.key === 'Backspace') {
+                        e.preventDefault();
+                        setSelectedCommand?.(null);
+                    }
+                    if (showCommands && (e.key === 'Enter' || e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
+                        if (e.key === 'Enter') e.preventDefault();
+                    }
+                }}
+                autoFocus
             />
         </div>
 
-        <Button type="submit" size="icon" disabled={!input.trim() && attachments.length === 0}>
+        <Button type="submit" size="icon" disabled={(!input.trim() && !selectedCommand) && attachments.length === 0}>
           <Send className="h-4 w-4" />
         </Button>
       </form>

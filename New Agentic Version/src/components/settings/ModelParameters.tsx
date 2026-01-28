@@ -125,6 +125,29 @@ export const ModelParameters: React.FC = () => {
                         Current: {currentContext.toLocaleString()} tokens ({formatContextDisplay(currentContext)})
                     </p>
                 </div>
+
+                {/* Max Output Tokens - Added */}
+                <div className="space-y-1.5">
+                    <label className="text-xs text-zinc-500">Max Output Tokens</label>
+                    <input
+                        type="number"
+                        placeholder="Default (unlimited)"
+                        min="1"
+                        value={params.maxTokens ?? ''}
+                        onChange={(e) => {
+                            const val = e.target.value;
+                            if (val === '') {
+                                updateModelConfig({ maxTokens: undefined });
+                            } else {
+                                updateModelConfig({ maxTokens: parseInt(val) });
+                            }
+                        }}
+                        className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-all"
+                    />
+                    <p className="text-[10px] text-zinc-600">
+                        Limit the number of tokens generated (affects response length). Leave empty for model default.
+                    </p>
+                </div>
             </div>
         </div>
     );

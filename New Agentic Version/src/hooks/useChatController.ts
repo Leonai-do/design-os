@@ -14,6 +14,7 @@ import {
   generateSectionData,
   generateScreenDesign
 } from '../lib/ai/index';
+import { formatResponseForDisplay } from '../lib/ai/providers/utils';
 import { getNextDiscoveryStep } from '../features/dynamic-intake/services/workflows/discovery';
 import { PrdContext, DiscoveryStep } from '../features/dynamic-intake/types';
 
@@ -48,6 +49,7 @@ export function useChatController() {
   const [isTyping, setIsTyping] = useState(false);
   const [showCommands, setShowCommands] = useState(false);
   const [activeContext, setActiveContext] = useState<ActiveContext>(null);
+  const [selectedCommand, setSelectedCommand] = useState<string | null>(null);
   
   const inputRef = useRef<HTMLInputElement>(null);
   
@@ -101,7 +103,8 @@ export function useChatController() {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setInput(value);
-    if (value.startsWith('/') && !value.includes(' ')) {
+    
+    if (!selectedCommand && value.startsWith('/') && !value.includes(' ')) {
       setShowCommands(true);
     } else {
       setShowCommands(false);
@@ -109,10 +112,12 @@ export function useChatController() {
   };
 
   const handleCommandSelect = (command: string) => {
-    setInput(command + ' ');
+    setSelectedCommand(command);
+    setInput('');
     setShowCommands(false);
     inputRef.current?.focus();
   };
+
 
   // --- DISCOVERY LOGIC ---
 
@@ -203,14 +208,45 @@ export function useChatController() {
 
   // --- STANDARD AI HANDLERS ---
 
+  // Parsing helper for streaming
+  const createStreamingMessage = (role: 'assistant' = 'assistant') => {
+      const id = `ai-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      const msg: Message = {
+          id,
+          role,
+          content: '',
+          timestamp: Date.now()
+      };
+      setMessages(prev => [...prev, msg]);
+      
+      let accumulated = '';
+      return {
+          id,
+          update: (chunk: string) => {
+              accumulated += chunk;
+              setMessages(prev => prev.map(m => m.id === id ? { ...m, content: accumulated } : m));
+          },
+          complete: (full: string) => {
+              setMessages(prev => prev.map(m => m.id === id ? { ...m, content: full || accumulated } : m));
+          }
+      };
+  };
+
   const handleVision = async (input: string, history: any[], images: string[] = []) => {
     setActiveContext('vision'); 
-    const response = await generateProductVision(input, data.overview, history);
-    if (response.data) {
-        updateOverview(response.data);
-        toast({ title: "Product Vision Updated", description: "docs/product-vision.md updated", type: 'success' });
+    const stream = createStreamingMessage();
+    try {
+        const response = await generateProductVision(input, data.overview, history, stream.update);
+        stream.complete(formatResponseForDisplay(response));
+        
+        if (response.data) {
+            updateOverview(response.data);
+            toast({ title: "Product Vision Updated", description: "docs/product-vision.md updated", type: 'success' });
+        }
+    } catch (e) {
+        console.error(e);
+        stream.complete("Sorry, I encountered an error generating the vision.");
     }
-    addBotMessage(response.message);
   };
 
   const handleRoadmap = async (input: string, history: any[], images: string[] = []) => {
@@ -220,12 +256,19 @@ export function useChatController() {
         return;
     }
     setActiveContext('roadmap');
-    const response = await generateRoadmap(input, data.overview, data.roadmap, history);
-    if (response.data) {
-        updateRoadmap(response.data);
-        toast({ title: "Roadmap Updated", description: "docs/roadmap.md updated", type: 'success' });
+    const stream = createStreamingMessage();
+    try {
+        const response = await generateRoadmap(input, data.overview, data.roadmap, history, stream.update);
+        stream.complete(formatResponseForDisplay(response));
+        
+        if (response.data) {
+            updateRoadmap(response.data);
+            toast({ title: "Roadmap Updated", description: "docs/roadmap.md updated", type: 'success' });
+        }
+    } catch (e) {
+        console.error(e);
+        stream.complete("Sorry, I encountered an error generating the roadmap.");
     }
-    addBotMessage(response.message);
   };
 
   const handleDataModel = async (input: string, history: any[], images: string[] = []) => {
@@ -235,12 +278,19 @@ export function useChatController() {
          return;
     }
     setActiveContext('data-model');
-    const response = await generateDataModel(input, data.overview, data.roadmap || { sections: [] }, data.dataModel, history);
-    if (response.data) {
-        updateDataModel(response.data);
-        toast({ title: "Data Model Updated", description: "src/db/schema.prisma updated", type: 'success' });
+    const stream = createStreamingMessage();
+    try {
+        const response = await generateDataModel(input, data.overview, data.roadmap || { sections: [] }, data.dataModel, history, images, stream.update);
+        stream.complete(formatResponseForDisplay(response));
+
+        if (response.data) {
+            updateDataModel(response.data);
+            toast({ title: "Data Model Updated", description: "src/db/schema.prisma updated", type: 'success' });
+        }
+    } catch (e) {
+        console.error(e);
+        stream.complete("Sorry, I encountered an error generating the data model.");
     }
-    addBotMessage(response.message);
   };
 
   const handleDesignSystem = async (input: string, history: any[], images: string[] = []) => {
@@ -250,12 +300,19 @@ export function useChatController() {
         return;
     }
     setActiveContext('design-system');
-    const response = await generateDesignSystem(input, data.overview, data.designSystem, history, images);
-    if (response.data) {
-        updateDesignSystem(response.data);
-        toast({ title: "Design Tokens Updated", description: "src/theme/* files updated", type: 'success' });
+    const stream = createStreamingMessage();
+    try {
+        const response = await generateDesignSystem(input, data.overview, data.designSystem, history, images, stream.update);
+        stream.complete(formatResponseForDisplay(response));
+        
+        if (response.data) {
+            updateDesignSystem(response.data);
+            toast({ title: "Design Tokens Updated", description: "src/theme/* files updated", type: 'success' });
+        }
+    } catch (e) {
+        console.error(e);
+        stream.complete("Sorry, I encountered an error generating the design system.");
     }
-    addBotMessage(response.message);
   };
 
   const handleShellDesign = async (input: string, history: any[], images: string[] = []) => {
@@ -264,13 +321,20 @@ export function useChatController() {
         return;
     }
     setActiveContext('shell-design');
-    const response = await generateShellSpec(input, data.overview, data.roadmap, history, images);
-    if (response.data) {
-        updateShell({ spec: response.data, hasComponents: false });
-        toast({ title: "Shell Designed", description: "App shell specification updated", type: 'success' });
-        navigate('/shell/design');
+    const stream = createStreamingMessage();
+    try {
+        const response = await generateShellSpec(input, data.overview, data.roadmap, history, images, stream.update);
+        stream.complete(formatResponseForDisplay(response));
+        
+        if (response.data) {
+            updateShell({ spec: response.data, hasComponents: false });
+            toast({ title: "Shell Designed", description: "App shell specification updated", type: 'success' });
+            navigate('/shell/design');
+        }
+    } catch (e) {
+        console.error(e);
+        stream.complete("Sorry, I encountered an error generating the shell design.");
     }
-    addBotMessage(response.message);
   };
 
   const handleSectionSpec = async (input: string, history: any[], images: string[] = []) => {
@@ -283,13 +347,20 @@ export function useChatController() {
          addBotMessage("We need a Roadmap first.");
          return;
     }
-    const response = await generateSectionSpec(input, data.roadmap, history, images);
-    if (response.data) {
-        updateSectionSpec(sectionId, response.data);
-        toast({ title: "Spec Updated", description: `Updated spec for ${sectionId}`, type: 'success' });
-        navigate(`/sections/${sectionId}`);
+    const stream = createStreamingMessage();
+    try {
+        const response = await generateSectionSpec(input, data.roadmap, history, images, stream.update);
+        stream.complete(formatResponseForDisplay(response));
+        
+        if (response.data) {
+            updateSectionSpec(sectionId, response.data);
+            toast({ title: "Spec Updated", description: `Updated spec for ${sectionId}`, type: 'success' });
+            navigate(`/sections/${sectionId}`);
+        }
+    } catch (e) {
+        console.error(e);
+        stream.complete(`Sorry, I encountered an error generating the spec for ${sectionId}.`);
     }
-    addBotMessage(response.message);
   };
 
   const handleSectionData = async (input: string, history: any[], images: string[] = []) => {
@@ -303,12 +374,19 @@ export function useChatController() {
         addBotMessage("I need a Section Spec and a Data Model first.");
         return;
     }
-    const response = await generateSectionData(section.spec, data.dataModel, history);
-    if (response.data) {
-        updateSectionData(sectionId, response.data);
-        toast({ title: "Sample Data Generated", description: `Updated data for ${sectionId}`, type: 'success' });
+    const stream = createStreamingMessage();
+    try {
+        const response = await generateSectionData(section.spec, data.dataModel, history, images, stream.update);
+        stream.complete(formatResponseForDisplay(response));
+
+        if (response.data) {
+            updateSectionData(sectionId, response.data);
+            toast({ title: "Sample Data Generated", description: `Updated data for ${sectionId}`, type: 'success' });
+        }
+    } catch (e) {
+         console.error(e);
+         stream.complete(`Sorry, I encountered an error generating data for ${sectionId}.`);
     }
-    addBotMessage(response.message);
   };
 
   const handleSectionUI = async (input: string, history: any[], images: string[] = []) => {
@@ -322,13 +400,20 @@ export function useChatController() {
         addBotMessage("I need a Spec and Sample Data for this section first.");
         return;
     }
-    const response = await generateScreenDesign(section.spec, section.sampleData, data.designSystem, history, images);
-    if (response.data) {
-        addScreenDesign(sectionId, response.data);
-        toast({ title: "Screen Design Created", description: `Created ${response.data.name}`, type: 'success' });
-        navigate(`/sections/${sectionId}/screen-designs/${response.data.id}`);
+    const stream = createStreamingMessage();
+    try {
+        const response = await generateScreenDesign(section.spec, section.sampleData, data.designSystem, history, images, stream.update);
+        stream.complete(formatResponseForDisplay(response));
+        
+        if (response.data) {
+            addScreenDesign(sectionId, response.data);
+            toast({ title: "Screen Design Created", description: `Created ${response.data.name}`, type: 'success' });
+            navigate(`/sections/${sectionId}/screen-designs/${response.data.id}`);
+        }
+    } catch (e) {
+        console.error(e);
+        stream.complete(`Sorry, I encountered an error generating the screen design for ${sectionId}.`);
     }
-    addBotMessage(response.message);
   };
 
   const handleExport = async () => {
@@ -337,19 +422,22 @@ export function useChatController() {
   };
 
   const handleSend = async (attachments: string[] = []) => {
-    if (!input.trim() && attachments.length === 0) return;
+    const fullInput = selectedCommand ? `${selectedCommand} ${input}`.trim() : input.trim();
+    
+    if (!fullInput && attachments.length === 0) return;
 
     // Special trigger for discovery
-    if (input.trim() === '/discovery') {
+    if (fullInput === '/discovery') {
         setInput('');
+        setSelectedCommand(null);
         setShowCommands(false);
         startDiscovery();
         return;
     }
 
-    const userText = input;
+    const userText = fullInput;
     const userMsg: Message = {
-      id: Date.now().toString(),
+      id: `user-${Date.now()}-${Math.random().toString(36).slice(2)}`,
       role: 'user',
       content: userText,
       timestamp: Date.now(),
@@ -358,6 +446,7 @@ export function useChatController() {
 
     setMessages(prev => [...prev, userMsg]);
     setInput('');
+    setSelectedCommand(null);
     setShowCommands(false);
     setIsTyping(true);
 
@@ -401,12 +490,44 @@ export function useChatController() {
             case 'shell-design': await handleShellDesign(userText, historyMsg, attachments); break;
         }
       } else {
+        const stream = createStreamingMessage();
+        
+        // Filter streaming to show only thoughts, hiding potential JSON schema
+        let accumulatedRaw = '';
+        const thoughtStreamer = (chunk: string) => {
+            const previousLength = accumulatedRaw.length;
+            accumulatedRaw += chunk;
+            const endTag = '</think>';
+            const endIndex = accumulatedRaw.indexOf(endTag);
+            
+            if (endIndex === -1) {
+                stream.update(chunk);
+            } else {
+                const cutoff = endIndex + endTag.length;
+                if (previousLength < cutoff) {
+                     const validChunkPart = accumulatedRaw.substring(previousLength, cutoff);
+                     stream.update(validChunkPart);
+                }
+            }
+        };
+        
         const result = await detectIntent(userText, historyMsg, { 
             hasVision: !!data.overview, 
             hasRoadmap: !!data.roadmap 
-        }, attachments);
+        }, attachments, thoughtStreamer);
+
+        // Extract thoughts based on tags
+        const thoughts = (result.raw || '').match(/<think>[\s\S]*?<\/think>/i)?.[0] || '';
+        
+        // Ensure message is clean of thoughts to avoid duplication
+        let cleanMessage = result.message || '';
+        // Remove any residual think tags from message (including content)
+        cleanMessage = cleanMessage.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
 
         if (result.intent && result.intent !== 'chat') {
+            // Routing
+            stream.complete(`${thoughts}\nRouting request to ${result.intent}...`.trim());
+            
             const args = userText;
             switch (result.intent) {
                 case 'vision': await handleVision(args, historyMsg, attachments); break;
@@ -428,10 +549,16 @@ export function useChatController() {
                     else await handleSectionUI(args, historyMsg, attachments);
                     break;
                     
-                default: addBotMessage(result.message);
+                default: 
+                     addBotMessage(result.message);
             }
         } else {
-            addBotMessage(result.message || "I didn't quite catch that. Could you clarify?");
+            // Chat
+            if (thoughts) {
+                stream.complete(`${thoughts}\n${cleanMessage}`.trim());
+            } else {
+                stream.complete(cleanMessage || "I didn't quite catch that.");
+            }
         }
       }
     } catch (error) {
@@ -456,6 +583,8 @@ export function useChatController() {
     handleInputChange,
     handleCommandSelect,
     startDiscovery, // Exported for external triggers (EmptyState)
-    handleDiscoverySubmit
+    handleDiscoverySubmit,
+    selectedCommand,
+    setSelectedCommand
   };
 }

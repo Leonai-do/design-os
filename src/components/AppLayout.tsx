@@ -90,7 +90,7 @@ export function AppLayout({
       {/* Footer with logo */}
       <footer className="py-8 flex justify-center">
         <a
-          href="https://buildermethods.com/design-os"
+          href="https://github.com/Leonai-do/design-os"
           target="_blank"
           rel="noopener noreferrer"
           className="flex items-center gap-2 text-stone-400 dark:text-stone-500 hover:text-stone-600 dark:hover:text-stone-400 transition-colors group"
