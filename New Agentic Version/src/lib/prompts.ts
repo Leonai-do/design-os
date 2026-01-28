@@ -169,7 +169,6 @@ You are a Senior React Developer.
 // =============================================================================
 // Detailed prompts from prompts/ directory
 // These provide full step-by-step workflow guidance for design-os commands
-// Import from './prompts' for the detailed versions
 // =============================================================================
 
 export {
@@ -189,3 +188,17 @@ export {
   SCREENSHOT_DESIGN_PROMPT,
   EXPORT_PRODUCT_PROMPT,
 } from './prompts/index'
+
+// =============================================================================
+// Backward compatibility re-exports
+// The codebase expects these export names
+// =============================================================================
+
+// Export DESIGN_TOKENS_PROMPT as DESIGN_SYSTEM_PROMPT for backward compatibility
+export { DESIGN_TOKENS_PROMPT as DESIGN_SYSTEM_PROMPT } from './prompts/index'
+
+// Export SHAPE_SECTION_PROMPT as SECTION_SPEC_PROMPT for backward compatibility  
+export { SHAPE_SECTION_PROMPT as SECTION_SPEC_PROMPT } from './prompts/index'
+
+// Export SAMPLE_DATA_PROMPT as SECTION_DATA_PROMPT for backward compatibility
+export { SAMPLE_DATA_PROMPT as SECTION_DATA_PROMPT } from './prompts/index'
