@@ -8,7 +8,8 @@ export async function detectIntent(
     input: string, 
     history: any[],
     currentContext: { hasVision: boolean, hasRoadmap: boolean },
-    images: string[] = []
+    images: string[] = [],
+    onStream?: (chunk: string) => void
 ) {
     // Schema definition compatible with Google's Type, pass raw object to client abstraction
     const schema = {
@@ -46,7 +47,8 @@ export async function detectIntent(
             schema,
             ORCHESTRATOR_PROMPT,
             history,
-            images
+            images,
+            onStream
         );
 
         if (!result.data) {
@@ -72,7 +74,8 @@ export async function detectIntent(
         return {
             intent: data.intent || 'chat',
             message: data.message || result.message,
-            sectionId: data.sectionId
+            sectionId: data.sectionId,
+            raw: result.raw // Pass through raw content (thoughts)
         };
 
     } catch (e) {

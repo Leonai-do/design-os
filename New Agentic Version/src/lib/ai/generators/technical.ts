@@ -11,7 +11,8 @@ export async function generateDataModel(
     roadmap: ProductRoadmap, 
     currentDataModel: DataModel | null,
     history: any[],
-    images: string[] = [] // Supported, but less common
+    images: string[] = [], // Supported, but less common
+    onStream?: (chunk: string) => void
 ) {
   const context = `
     Product Overview: ${JSON.stringify(overview)}
@@ -42,7 +43,7 @@ export async function generateDataModel(
     required: ["entities", "relationships"]
   };
 
-  return generateStructured<DataModel>(context, schema, DATA_MODEL_PROMPT, history, images);
+  return generateStructured<DataModel>(context, schema, DATA_MODEL_PROMPT, history, images, onStream);
 }
 
 // 4. Design System (Vision Supported)
@@ -51,7 +52,8 @@ export async function generateDesignSystem(
     overview: ProductOverview, 
     currentSystem: DesignSystem | null,
     history: any[],
-    images: string[] = []
+    images: string[] = [],
+    onStream?: (chunk: string) => void
 ) {
   const context = `
     Product Overview: ${JSON.stringify(overview)}
@@ -85,5 +87,5 @@ export async function generateDesignSystem(
     required: ["colors", "typography"]
   };
 
-  return generateStructured<DesignSystem>(context, schema, DESIGN_SYSTEM_PROMPT, history, images);
+  return generateStructured<DesignSystem>(context, schema, DESIGN_SYSTEM_PROMPT, history, images, onStream);
 }

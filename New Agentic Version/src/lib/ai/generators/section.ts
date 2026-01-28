@@ -9,7 +9,8 @@ export async function generateSectionSpec(
   input: string,
   roadmap: ProductRoadmap,
   history: any[],
-  images: string[] = []
+  images: string[] = [],
+  onStream?: (chunk: string) => void
 ) {
   const context = `
     Roadmap: ${JSON.stringify(roadmap)}
@@ -28,7 +29,7 @@ export async function generateSectionSpec(
     required: ["title", "description", "userFlows", "uiRequirements", "useShell"]
   };
 
-  return generateStructured<SectionSpec>(context, schema, SECTION_SPEC_PROMPT, history, images);
+  return generateStructured<SectionSpec>(context, schema, SECTION_SPEC_PROMPT, history, images, onStream);
 }
 
 // 6. Section Data
@@ -36,7 +37,8 @@ export async function generateSectionData(
   sectionSpec: SectionSpec,
   dataModel: DataModel,
   history: any[],
-  images: string[] = []
+  images: string[] = [],
+  onStream?: (chunk: string) => void
 ) {
   const context = `
     Section Spec: ${JSON.stringify(sectionSpec)}
@@ -48,7 +50,7 @@ export async function generateSectionData(
     description: "Stringified JSON object of the sample data"
   };
 
-  return generateStructured<string>(context, schema, SECTION_DATA_PROMPT, history, images);
+  return generateStructured<string>(context, schema, SECTION_DATA_PROMPT, history, images, onStream);
 }
 
 // 7. Screen Design (Vision Supported)
@@ -57,7 +59,8 @@ export async function generateScreenDesign(
   sampleData: string,
   designSystem: DesignSystem | null,
   history: any[],
-  images: string[] = []
+  images: string[] = [],
+  onStream?: (chunk: string) => void
 ) {
   const context = `
     Section Spec: ${JSON.stringify(sectionSpec)}
@@ -77,5 +80,5 @@ export async function generateScreenDesign(
     required: ["name", "componentName", "code"]
   };
 
-  return generateStructured<ScreenDesign>(context, schema, SCREEN_DESIGN_PROMPT, history, images);
+  return generateStructured<ScreenDesign>(context, schema, SCREEN_DESIGN_PROMPT, history, images, onStream);
 }

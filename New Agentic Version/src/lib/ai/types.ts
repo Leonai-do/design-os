@@ -4,7 +4,8 @@ export interface AIProvider {
         prompt: string,
         systemInstruction: string,
         history: { role: 'user' | 'assistant', content: string }[],
-        images: string[]
+        images: string[],
+        onStream?: (chunk: string) => void
     ): Promise<string>;
 
     generateStructured<T>(
@@ -12,6 +13,7 @@ export interface AIProvider {
         schema: any,
         systemInstruction: string,
         history: { role: 'user' | 'assistant', content: string }[],
-        images: string[]
-    ): Promise<{ data?: T; message: string }>;
+        images: string[],
+        onStream?: (chunk: string) => void
+    ): Promise<{ data?: T; message: string; raw?: string }>;
 }

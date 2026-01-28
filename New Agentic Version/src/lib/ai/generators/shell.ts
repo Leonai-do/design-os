@@ -9,7 +9,8 @@ export async function generateShellSpec(
     overview: ProductOverview,
     roadmap: ProductRoadmap,
     history: any[],
-    images: string[] = []
+    images: string[] = [],
+    onStream?: (chunk: string) => void
 ) {
   const context = `
     Product Overview: ${JSON.stringify(overview)}
@@ -32,5 +33,5 @@ export async function generateShellSpec(
     required: ["overview", "navigationItems", "layoutPattern", "raw"]
   };
 
-  return generateStructured<ShellSpec>(context, schema, SHELL_DESIGN_PROMPT, history, images);
+  return generateStructured<ShellSpec>(context, schema, SHELL_DESIGN_PROMPT, history, images, onStream);
 }

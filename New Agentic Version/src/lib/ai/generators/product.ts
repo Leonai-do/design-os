@@ -8,7 +8,8 @@ import { ProductOverview, ProductRoadmap } from "../../../types";
 export async function generateProductVision(
     input: string, 
     currentOverview: ProductOverview | null, 
-    history: any[]
+    history: any[],
+    onStream?: (chunk: string) => void
 ) {
   const context = `
     Current Product Overview: ${JSON.stringify(currentOverview || {})}
@@ -39,7 +40,7 @@ export async function generateProductVision(
     required: ["name", "description", "problems", "features"]
   };
 
-  return generateStructured<ProductOverview>(context, schema, PRODUCT_VISION_PROMPT, history);
+  return generateStructured<ProductOverview>(context, schema, PRODUCT_VISION_PROMPT, history, [], onStream);
 }
 
 // 2. Product Roadmap (Create or Edit)
@@ -47,7 +48,8 @@ export async function generateRoadmap(
     input: string, 
     overview: ProductOverview, 
     currentRoadmap: ProductRoadmap | null,
-    history: any[]
+    history: any[],
+    onStream?: (chunk: string) => void
 ) {
   const context = `
     Product Overview: ${JSON.stringify(overview)}
@@ -75,5 +77,5 @@ export async function generateRoadmap(
     required: ["sections"]
   };
 
-  return generateStructured<ProductRoadmap>(context, schema, PRODUCT_ROADMAP_PROMPT, history);
+  return generateStructured<ProductRoadmap>(context, schema, PRODUCT_ROADMAP_PROMPT, history, [], onStream);
 }
